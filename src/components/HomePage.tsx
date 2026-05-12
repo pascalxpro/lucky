@@ -260,7 +260,7 @@ function ProjectDetailModal({ project, voteCount, hasVoted, isDisabled, onVote, 
   );
 }
 
-export default function HomePage({ campaign, maxVotesPerPerson = 0, campaignDetails = '', requireClaimInfo = true, logoUrl = '', companyName = '' }: { campaign: Campaign; maxVotesPerPerson?: number; campaignDetails?: string; requireClaimInfo?: boolean; logoUrl?: string; companyName?: string }) {
+export default function HomePage({ campaign, maxVotesPerPerson = 0, campaignDetails = '', requireClaimInfo = true, logoUrl = '', companyName = '', votesPerGame = 1 }: { campaign: Campaign; maxVotesPerPerson?: number; campaignDetails?: string; requireClaimInfo?: boolean; logoUrl?: string; companyName?: string; votesPerGame?: number }) {
   const [voteCounts, setVoteCounts] = useState<Record<string, number>>({});
   const [votedProjects, setVotedProjects] = useState<Set<string>>(new Set());
   const [bannerIndex, setBannerIndex] = useState(0);
@@ -272,6 +272,7 @@ export default function HomePage({ campaign, maxVotesPerPerson = 0, campaignDeta
   const [muted, setMuted] = useState(false);
   const [voting, setVoting] = useState<string | null>(null);
   const [remainingVotes, setRemainingVotes] = useState<number | null>(maxVotesPerPerson > 0 ? maxVotesPerPerson : null);
+  const [voteProgress, setVoteProgress] = useState(0); // tracks votes toward next game
 
   // Initialize vote counts
   useEffect(() => {
@@ -317,8 +318,14 @@ export default function HomePage({ campaign, maxVotesPerPerson = 0, campaignDeta
         } else if (remainingVotes !== null) {
           setRemainingVotes(r => r !== null ? r - 1 : null);
         }
-        // Trigger game
-        setShowGame(true);
+        // Track vote progress toward next game
+        const newProgress = voteProgress + 1;
+        if (newProgress >= votesPerGame) {
+          setVoteProgress(0);
+          setShowGame(true);
+        } else {
+          setVoteProgress(newProgress);
+        }
       } else if (data.alreadyVoted) {
         setVotedProjects(prev => new Set(prev).add(projectId));
         alert('您已經為此作品投過票了！');
@@ -331,7 +338,7 @@ export default function HomePage({ campaign, maxVotesPerPerson = 0, campaignDeta
     } finally {
       setVoting(null);
     }
-  }, [campaign.id, votedProjects, voting, remainingVotes, maxVotesPerPerson]);
+  }, [campaign.id, votedProjects, voting, remainingVotes, maxVotesPerPerson, voteProgress, votesPerGame]);
 
   const handleGameComplete = useCallback(async () => {
     try {
@@ -612,6 +619,35 @@ export default function HomePage({ campaign, maxVotesPerPerson = 0, campaignDeta
               🗳️ {remainingVotes > 0
                 ? <>剩餘 <strong className="font-en">{remainingVotes}</strong> 票可投</>
                 : <>已用完全部 <strong className="font-en">{maxVotesPerPerson}</strong> 票</>}
+            </div>
+          )}
+          {/* Game progress indicator (when votesPerGame > 1) */}
+          {votesPerGame > 1 && (
+            <div style={{
+              marginTop: '0.75rem',
+              padding: '0.75rem 1rem', borderRadius: 'var(--radius)',
+              background: 'var(--bg-card)', border: '1px solid var(--glass-border)',
+              backdropFilter: 'blur(8px)',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.4rem' }}>
+                <span style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                  <Gift size={14} style={{ color: 'var(--accent)' }} />
+                  {voteProgress >= votesPerGame
+                    ? '🎉 已解鎖抽獎遊戲！'
+                    : `再投 ${votesPerGame - voteProgress} 票即可玩抽獎遊戲`}
+                </span>
+                <span className="font-en" style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--accent)' }}>
+                  {voteProgress}/{votesPerGame}
+                </span>
+              </div>
+              <div style={{ height: 6, borderRadius: 3, background: 'rgba(255,255,255,0.08)', overflow: 'hidden' }}>
+                <div style={{
+                  width: `${Math.round((voteProgress / votesPerGame) * 100)}%`,
+                  height: '100%', borderRadius: 3,
+                  background: 'var(--gradient-gold)',
+                  transition: 'width 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
+                }} />
+              </div>
             </div>
           )}
         </div>

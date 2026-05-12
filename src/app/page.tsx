@@ -28,6 +28,12 @@ export default async function Page() {
   });
   const maxVotesPerPerson = maxVotesSetting ? parseInt(maxVotesSetting.value, 10) : 0;
 
+  // Get votesPerGame setting
+  const votesPerGameSetting = await prisma.setting.findUnique({
+    where: { campaignId_key: { campaignId: campaign.id, key: 'votesPerGame' } },
+  });
+  const votesPerGame = votesPerGameSetting ? parseInt(votesPerGameSetting.value, 10) : 1;
+
   // Get campaign details (活動說明)
   const detailsSetting = await prisma.setting.findUnique({
     where: { campaignId_key: { campaignId: campaign.id, key: 'campaignDetails' } },
@@ -54,6 +60,7 @@ export default async function Page() {
       requireClaimInfo={requireClaimInfo}
       logoUrl={logoSetting?.value || ''}
       companyName={companyNameSetting?.value || ''}
+      votesPerGame={votesPerGame}
     />
   );
 }

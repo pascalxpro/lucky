@@ -48,6 +48,7 @@ export default function SettingsPage() {
   const [customBodySize, setCustomBodySize] = useState('16');
   const [customRadius, setCustomRadius] = useState('16');
   const [maxVotesPerPerson, setMaxVotesPerPerson] = useState(0);
+  const [votesPerGame, setVotesPerGame] = useState(1);
   const [sectionStyles, setSectionStyles] = useState<SectionStyles>({});
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
   const [previewGame, setPreviewGame] = useState<string | null>(null);
@@ -79,6 +80,8 @@ export default function SettingsPage() {
         if (cr) setCustomRadius(cr);
         const mvp = await getSetting(active.id, 'maxVotesPerPerson');
         if (mvp) setMaxVotesPerPerson(parseInt(mvp, 10));
+        const vpg = await getSetting(active.id, 'votesPerGame');
+        if (vpg) setVotesPerGame(parseInt(vpg, 10));
         const ss = await getSetting(active.id, 'sectionStyles');
         if (ss) try { setSectionStyles(JSON.parse(ss)); } catch {}
         const rci = await getSetting(active.id, 'requireClaimInfo');
@@ -105,6 +108,7 @@ export default function SettingsPage() {
     await setSetting(campaignId, 'bodySize', customBodySize);
     await setSetting(campaignId, 'cardRadius', customRadius);
     await setSetting(campaignId, 'maxVotesPerPerson', String(maxVotesPerPerson));
+    await setSetting(campaignId, 'votesPerGame', String(votesPerGame));
     if (Object.keys(sectionStyles).length > 0) {
       await setSetting(campaignId, 'sectionStyles', JSON.stringify(sectionStyles));
     }
@@ -523,6 +527,44 @@ export default function SettingsPage() {
                 {maxVotesPerPerson > 0
                   ? ` 且總共最多可投 ${maxVotesPerPerson} 個不同的作品。`
                   : ' 總票數不限制。'}
+              </div>
+            </div>
+          </div>
+          {/* Votes per game */}
+          <div className="admin-panel">
+            <div className="admin-panel-title" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              🎲 抽獎觸發條件
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div>
+                <label className="form-label">每投幾票可玩一次遊戲</label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                  <input type="number" value={votesPerGame} min={1} max={20}
+                    onChange={e => setVotesPerGame(Math.max(1, parseInt(e.target.value) || 1))}
+                    style={{ width: 100 }} />
+                  <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                    {votesPerGame === 1 ? '每投一票即可抽獎' : `每投滿 ${votesPerGame} 票可玩一次遊戲`}
+                  </span>
+                </div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.5rem', lineHeight: 1.5 }}>
+                  💡 設為 <strong>1</strong> 表示每投一票就能玩一次抽獎遊戲（原始行為）<br />
+                  💡 設為 <strong>3</strong> 表示用戶需投滿 3 票才能觸發一次抽獎遊戲
+                </div>
+              </div>
+              {/* Progress preview */}
+              <div style={{ padding: '0.75rem 1rem', background: 'rgba(124,58,237,0.08)', borderRadius: 'var(--radius-sm)' }}>
+                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>用戶端進度條預覽</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                  <div style={{ flex: 1, height: 8, borderRadius: 4, background: 'rgba(255,255,255,0.08)', overflow: 'hidden' }}>
+                    <div style={{ width: `${Math.round((2 / votesPerGame) * 100)}%`, height: '100%', borderRadius: 4, background: 'var(--gradient-gold)', transition: 'width 0.3s ease' }} />
+                  </div>
+                  <span className="font-en" style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--accent)', minWidth: 50 }}>
+                    2/{votesPerGame}
+                  </span>
+                </div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.4rem' }}>
+                  {votesPerGame === 1 ? '✅ 每投一票立即觸發遊戲' : `⚠️ 還需投 ${votesPerGame - 2} 票才能玩遊戲`}
+                </div>
               </div>
             </div>
           </div>
