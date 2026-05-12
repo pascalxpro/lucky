@@ -260,7 +260,7 @@ function ProjectDetailModal({ project, voteCount, hasVoted, isDisabled, onVote, 
   );
 }
 
-export default function HomePage({ campaign, maxVotesPerPerson = 0, campaignDetails = '', requireClaimInfo = true }: { campaign: Campaign; maxVotesPerPerson?: number; campaignDetails?: string; requireClaimInfo?: boolean }) {
+export default function HomePage({ campaign, maxVotesPerPerson = 0, campaignDetails = '', requireClaimInfo = true, logoUrl = '', companyName = '' }: { campaign: Campaign; maxVotesPerPerson?: number; campaignDetails?: string; requireClaimInfo?: boolean; logoUrl?: string; companyName?: string }) {
   const [voteCounts, setVoteCounts] = useState<Record<string, number>>({});
   const [votedProjects, setVotedProjects] = useState<Set<string>>(new Set());
   const [bannerIndex, setBannerIndex] = useState(0);
@@ -420,6 +420,28 @@ export default function HomePage({ campaign, maxVotesPerPerson = 0, campaignDeta
       <div className="container" style={{ position: 'relative', zIndex: 1, paddingTop: '2rem', paddingBottom: '4rem' }}>
         {/* Header */}
         <header style={{ textAlign: 'center', marginBottom: '2.5rem' }} className="animate-fade-in">
+          {/* Logo & Company Name */}
+          {(logoUrl || companyName) && (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.4rem', marginBottom: '1.25rem' }}>
+              {logoUrl && (
+                <img src={logoUrl} alt={companyName || 'Logo'}
+                  style={{
+                    width: 64, height: 64, objectFit: 'contain', borderRadius: '14px',
+                    boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
+                    background: 'rgba(255,255,255,0.06)', padding: 4,
+                    border: '1px solid var(--glass-border)',
+                  }} />
+              )}
+              {companyName && (
+                <div style={{
+                  fontSize: '0.88rem', fontWeight: 600, letterSpacing: '0.08em',
+                  color: 'var(--text-secondary)', textTransform: 'uppercase',
+                }}>
+                  {companyName}
+                </div>
+              )}
+            </div>
+          )}
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
             <Sparkles size={20} style={{ color: 'var(--accent)' }} />
             <span className="badge badge-gold font-en">VOTE & WIN</span>

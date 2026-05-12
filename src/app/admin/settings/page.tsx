@@ -3,7 +3,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getCampaigns, updateCampaign, getSetting, setSetting } from '@/lib/actions';
 import { THEME_PRESETS, IMAGE_DIMENSIONS, themeToCSS, type ThemePreset } from '@/lib/themes';
-import { Save, Palette, Music, FileText, Gamepad2, Image, Type, Check, Ruler, Vote, ChevronDown, ChevronUp, Play, X } from 'lucide-react';
+import { Save, Palette, Music, FileText, Gamepad2, Image, Type, Check, Ruler, Vote, ChevronDown, ChevronUp, Play, X, Globe, Building2 } from 'lucide-react';
+import ImageUploader from '@/components/ImageUploader';
 import dynamic from 'next/dynamic';
 
 const WheelGame = dynamic(() => import('@/components/games/WheelGame'), { ssr: false });
@@ -51,9 +52,13 @@ export default function SettingsPage() {
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
   const [previewGame, setPreviewGame] = useState<string | null>(null);
   const [requireClaimInfo, setRequireClaimInfo] = useState(true);
+  const [siteName, setSiteName] = useState('');
+  const [faviconUrl, setFaviconUrl] = useState('');
+  const [logoUrl, setLogoUrl] = useState('');
+  const [companyName, setCompanyName] = useState('');
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'theme' | 'game' | 'system'>('theme');
+  const [activeTab, setActiveTab] = useState<'theme' | 'game' | 'branding' | 'system'>('theme');
 
   useEffect(() => {
     (async () => {
@@ -78,6 +83,14 @@ export default function SettingsPage() {
         if (ss) try { setSectionStyles(JSON.parse(ss)); } catch {}
         const rci = await getSetting(active.id, 'requireClaimInfo');
         if (rci !== null && rci !== undefined) setRequireClaimInfo(rci !== 'false');
+        const sn = await getSetting(active.id, 'siteName');
+        if (sn) setSiteName(sn);
+        const fav = await getSetting(active.id, 'faviconUrl');
+        if (fav) setFaviconUrl(fav);
+        const logo = await getSetting(active.id, 'logoUrl');
+        if (logo) setLogoUrl(logo);
+        const cn = await getSetting(active.id, 'companyName');
+        if (cn) setCompanyName(cn);
       }
       setLoading(false);
     })();
@@ -96,6 +109,10 @@ export default function SettingsPage() {
       await setSetting(campaignId, 'sectionStyles', JSON.stringify(sectionStyles));
     }
     await setSetting(campaignId, 'requireClaimInfo', String(requireClaimInfo));
+    await setSetting(campaignId, 'siteName', siteName);
+    await setSetting(campaignId, 'faviconUrl', faviconUrl);
+    await setSetting(campaignId, 'logoUrl', logoUrl);
+    await setSetting(campaignId, 'companyName', companyName);
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };
@@ -133,6 +150,7 @@ export default function SettingsPage() {
       <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '2rem', borderBottom: '1px solid var(--admin-border)', paddingBottom: '0.75rem' }}>
         {[
           { key: 'theme' as const, icon: <Palette size={16} />, label: '佈景主題' },
+          { key: 'branding' as const, icon: <Globe size={16} />, label: '網站品牌' },
           { key: 'game' as const, icon: <Gamepad2 size={16} />, label: '遊戲模式' },
           { key: 'system' as const, icon: <FileText size={16} />, label: '系統資訊' },
         ].map(tab => (
@@ -364,6 +382,85 @@ export default function SettingsPage() {
                   <div className="font-en" style={{ fontSize: '0.8rem', color: 'var(--accent)' }}>{dim.label}</div>
                 </div>
               ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ─── Branding Tab ─── */}
+      {activeTab === 'branding' && (
+        <div style={{ display: 'grid', gap: '1.5rem', maxWidth: 700 }}>
+          {/* Site Name & Favicon */}
+          <div className="admin-panel">
+            <div className="admin-panel-title" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Globe size={18} /> 網站圖示與名稱
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 400, marginLeft: 'auto' }}>瀏覽器分頁上顯示的圖示與標題</span>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div>
+                <label className="form-label">網站名稱（瀏覽器分頁標題）</label>
+                <input value={siteName} onChange={e => setSiteName(e.target.value)} placeholder="例如：2026 年度人氣票選" />
+                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '0.3rem' }}>
+                  留空則使用預設名稱「互動投票抽獎 | Riiqi Lucky」
+                </div>
+              </div>
+              <div>
+                <label className="form-label">網站圖示 (Favicon)</label>
+                <ImageUploader value={faviconUrl} onChange={setFaviconUrl} hint="建議 64×64 px 正方形 PNG 或 ICO" maxWidth={128} maxHeight={128} />
+              </div>
+              {/* Live preview */}
+              <div style={{ padding: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--admin-border)' }}>
+                <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>瀏覽器分頁預覽</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0.75rem', background: 'var(--admin-sidebar)', borderRadius: '8px 8px 0 0', maxWidth: 300 }}>
+                  {faviconUrl ? (
+                    <img src={faviconUrl} alt="favicon" style={{ width: 16, height: 16, borderRadius: 2, objectFit: 'cover' }} />
+                  ) : (
+                    <div style={{ width: 16, height: 16, borderRadius: 2, background: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.55rem', color: '#fff', fontWeight: 800 }}>R</div>
+                  )}
+                  <span style={{ fontSize: '0.78rem', color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {siteName || '互動投票抽獎 | Riiqi Lucky'}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Logo & Company Name */}
+          <div className="admin-panel">
+            <div className="admin-panel-title" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Building2 size={18} /> 首頁 Logo 與公司名稱
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 400, marginLeft: 'auto' }}>顯示在首頁標題上方</span>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div>
+                <label className="form-label">公司 / 品牌名稱</label>
+                <input value={companyName} onChange={e => setCompanyName(e.target.value)} placeholder="例如：Riiqi Studio" />
+              </div>
+              <div>
+                <label className="form-label">Logo 圖片</label>
+                <ImageUploader value={logoUrl} onChange={setLogoUrl} hint="建議 200×200 px 正方形透明 PNG" maxWidth={400} maxHeight={400} />
+              </div>
+              {/* Live preview */}
+              <div style={{ padding: '1.5rem', background: activeTheme.colors.bgDark, borderRadius: 'var(--radius-sm)', border: '1px solid var(--admin-border)', textAlign: 'center' }}>
+                <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>首頁顯示預覽</div>
+                {(logoUrl || companyName) ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+                    {logoUrl && (
+                      <img src={logoUrl} alt="Logo" style={{ width: 56, height: 56, objectFit: 'contain', borderRadius: '12px' }} />
+                    )}
+                    {companyName && (
+                      <div style={{ fontSize: '0.85rem', fontWeight: 600, color: activeTheme.colors.textSecondary, letterSpacing: '0.05em' }}>
+                        {companyName}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>尚未設定 Logo 或公司名稱</div>
+                )}
+                <div style={{ fontSize: '1.2rem', fontWeight: 800, background: activeTheme.colors.gradientHero, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
+                  🎉 活動標題預覽
+                </div>
+              </div>
             </div>
           </div>
         </div>

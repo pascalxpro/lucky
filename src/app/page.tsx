@@ -40,12 +40,20 @@ export default async function Page() {
   });
   const requireClaimInfo = claimInfoSetting ? claimInfoSetting.value !== 'false' : true;
 
+  // Get branding settings
+  const [logoSetting, companyNameSetting] = await Promise.all([
+    prisma.setting.findUnique({ where: { campaignId_key: { campaignId: campaign.id, key: 'logoUrl' } } }),
+    prisma.setting.findUnique({ where: { campaignId_key: { campaignId: campaign.id, key: 'companyName' } } }),
+  ]);
+
   return (
     <HomePage
       campaign={JSON.parse(JSON.stringify(campaign))}
       maxVotesPerPerson={maxVotesPerPerson}
       campaignDetails={campaignDetails}
       requireClaimInfo={requireClaimInfo}
+      logoUrl={logoSetting?.value || ''}
+      companyName={companyNameSetting?.value || ''}
     />
   );
 }

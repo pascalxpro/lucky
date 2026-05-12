@@ -3,11 +3,30 @@ import "./globals.css";
 import { prisma } from "@/lib/prisma";
 import { THEME_PRESETS, themeToCSS } from "@/lib/themes";
 
-export const metadata: Metadata = {
-  title: "互動投票抽獎 | Riiqi Lucky",
-  description: "投下您神聖的一票，參加幸運抽獎，贏取豐富大獎！",
-  keywords: "投票, 抽獎, 轉盤, 刮刮樂, 拉霸, 幸運抽獎",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  try {
+    const activeCampaign = await prisma.campaign.findFirst({ where: { isActive: true } });
+    if (activeCampaign) {
+      const siteNameSetting = await prisma.setting.findUnique({
+        where: { campaignId_key: { campaignId: activeCampaign.id, key: 'siteName' } },
+      });
+      const faviconSetting = await prisma.setting.findUnique({
+        where: { campaignId_key: { campaignId: activeCampaign.id, key: 'faviconUrl' } },
+      });
+      return {
+        title: siteNameSetting?.value || '互動投票抽獎 | Riiqi Lucky',
+        description: '投下您神聖的一票，參加幸運抽獎，贏取豐富大獎！',
+        keywords: '投票, 抽獎, 轉盤, 刮刮樂, 拉霸, 幸運抽獎',
+        icons: faviconSetting?.value ? { icon: faviconSetting.value } : undefined,
+      };
+    }
+  } catch {}
+  return {
+    title: '互動投票抽獎 | Riiqi Lucky',
+    description: '投下您神聖的一票，參加幸運抽獎，贏取豐富大獎！',
+    keywords: '投票, 抽獎, 轉盤, 刮刮樂, 拉霸, 幸運抽獎',
+  };
+}
 
 async function getThemeCSS(): Promise<{ cssVars: string; googleFontUrl: string }> {
   try {
