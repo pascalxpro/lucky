@@ -57,6 +57,7 @@ export default function SettingsPage() {
   const [faviconUrl, setFaviconUrl] = useState('');
   const [logoUrl, setLogoUrl] = useState('');
   const [companyName, setCompanyName] = useState('');
+  const [thankYouMessage, setThankYouMessage] = useState('');
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'theme' | 'game' | 'branding' | 'system'>('theme');
@@ -94,6 +95,8 @@ export default function SettingsPage() {
         if (logo) setLogoUrl(logo);
         const cn = await getSetting(active.id, 'companyName');
         if (cn) setCompanyName(cn);
+        const tym = await getSetting(active.id, 'thankYouMessage');
+        if (tym) setThankYouMessage(tym);
       }
       setLoading(false);
     })();
@@ -117,6 +120,7 @@ export default function SettingsPage() {
     await setSetting(campaignId, 'faviconUrl', faviconUrl);
     await setSetting(campaignId, 'logoUrl', logoUrl);
     await setSetting(campaignId, 'companyName', companyName);
+    await setSetting(campaignId, 'thankYouMessage', thankYouMessage);
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };
@@ -588,6 +592,36 @@ export default function SettingsPage() {
                 {requireClaimInfo
                   ? '✅ 目前設定：中獎後會跳出領獎表單，要求填寫姓名、手機號碼、收件地址。'
                   : '⚠️ 目前設定：中獎後僅顯示恭喜訊息，不要求填寫個資。'}
+              </div>
+            </div>
+          </div>
+          {/* Thank you message */}
+          <div className="admin-panel">
+            <div className="admin-panel-title" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              🙏 遊戲結束感謝詞
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div>
+                <label className="form-label">自訂感謝訊息</label>
+                <textarea
+                  value={thankYouMessage}
+                  onChange={e => setThankYouMessage(e.target.value)}
+                  placeholder="感謝您的投票與參加抽獎活動，您的每一票都是最珍貴的支持！"
+                  rows={3}
+                  style={{ width: '100%', resize: 'vertical' }}
+                />
+                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '0.3rem' }}>
+                  留空則使用預設訊息。此訊息在用戶玩完遊戲後的感謝彈窗中顯示。
+                </div>
+              </div>
+              {/* Preview */}
+              <div style={{ padding: '1.25rem', background: 'rgba(0,0,0,0.2)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--admin-border)', textAlign: 'center' }}>
+                <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginBottom: '0.75rem' }}>彈窗預覽</div>
+                <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>🙏</div>
+                <div style={{ fontSize: '1.1rem', fontWeight: 800, marginBottom: '0.5rem', background: activeTheme.colors.gradientHero, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>感謝您的參與！</div>
+                <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.5, whiteSpace: 'pre-line' }}>
+                  {thankYouMessage || '感謝您的投票與參加抽獎活動，\n您的每一票都是最珍貴的支持！'}
+                </div>
               </div>
             </div>
           </div>

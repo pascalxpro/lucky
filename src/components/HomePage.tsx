@@ -260,7 +260,7 @@ function ProjectDetailModal({ project, voteCount, hasVoted, isDisabled, onVote, 
   );
 }
 
-export default function HomePage({ campaign, maxVotesPerPerson = 0, campaignDetails = '', requireClaimInfo = true, logoUrl = '', companyName = '', votesPerGame = 1 }: { campaign: Campaign; maxVotesPerPerson?: number; campaignDetails?: string; requireClaimInfo?: boolean; logoUrl?: string; companyName?: string; votesPerGame?: number }) {
+export default function HomePage({ campaign, maxVotesPerPerson = 0, campaignDetails = '', requireClaimInfo = true, logoUrl = '', companyName = '', votesPerGame = 1, thankYouMessage = '' }: { campaign: Campaign; maxVotesPerPerson?: number; campaignDetails?: string; requireClaimInfo?: boolean; logoUrl?: string; companyName?: string; votesPerGame?: number; thankYouMessage?: string }) {
   const [voteCounts, setVoteCounts] = useState<Record<string, number>>({});
   const [votedProjects, setVotedProjects] = useState<Set<string>>(new Set());
   const [bannerIndex, setBannerIndex] = useState(0);
@@ -273,6 +273,7 @@ export default function HomePage({ campaign, maxVotesPerPerson = 0, campaignDeta
   const [voting, setVoting] = useState<string | null>(null);
   const [remainingVotes, setRemainingVotes] = useState<number | null>(maxVotesPerPerson > 0 ? maxVotesPerPerson : null);
   const [voteProgress, setVoteProgress] = useState(0); // tracks votes toward next game
+  const [showThankYou, setShowThankYou] = useState(false);
 
   // Initialize vote counts
   useEffect(() => {
@@ -380,6 +381,11 @@ export default function HomePage({ campaign, maxVotesPerPerson = 0, campaignDeta
   const handleCloseResult = () => {
     setGameResult(null);
     setShowGame(false);
+    setShowThankYou(true);
+  };
+
+  const handleCloseThankYou = () => {
+    setShowThankYou(false);
   };
 
   if (showClaim && gameResult) {
@@ -402,6 +408,49 @@ export default function HomePage({ campaign, maxVotesPerPerson = 0, campaignDeta
       >
         {muted ? <VolumeX size={20} /> : <Volume2 size={20} />}
       </button>
+
+      {/* Thank You Modal */}
+      {showThankYou && (
+        <div className="modal-overlay">
+          <div className="modal-content" style={{ textAlign: 'center', maxWidth: 420 }}>
+            <div style={{ fontSize: '4rem', marginBottom: '0.75rem' }}>🙏</div>
+            <h2 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '0.75rem' }}>
+              <span className="text-gradient">感謝您的參與！</span>
+            </h2>
+            <p style={{ color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: '0.5rem', fontSize: '0.95rem', whiteSpace: 'pre-line' }}>
+              {thankYouMessage || '感謝您的投票與參加抽獎活動，\n您的每一票都是最珍貴的支持！'}
+            </p>
+            {remainingVotes !== null && remainingVotes <= 0 ? (
+              <div style={{
+                padding: '0.6rem 1rem', borderRadius: 'var(--radius-sm)',
+                background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)',
+                fontSize: '0.82rem', color: 'var(--danger)', margin: '1rem 0',
+              }}>
+                🏁 您的投票次數已全部用完，活動已結束！
+              </div>
+            ) : remainingVotes !== null && remainingVotes > 0 ? (
+              <div style={{
+                padding: '0.6rem 1rem', borderRadius: 'var(--radius-sm)',
+                background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.2)',
+                fontSize: '0.82rem', color: 'var(--success)', margin: '1rem 0',
+              }}>
+                🗳️ 您還有 <strong className="font-en">{remainingVotes}</strong> 票可投，繼續支持喜愛的作品吧！
+              </div>
+            ) : (
+              <div style={{
+                padding: '0.6rem 1rem', borderRadius: 'var(--radius-sm)',
+                background: 'rgba(124,58,237,0.08)', border: '1px solid rgba(124,58,237,0.2)',
+                fontSize: '0.82rem', color: 'var(--text-secondary)', margin: '1rem 0',
+              }}>
+                🌟 繼續投票支持更多作品，還有抽獎機會等著您！
+              </div>
+            )}
+            <button className="btn btn-gold btn-lg" onClick={handleCloseThankYou} style={{ width: '100%', marginTop: '0.5rem' }}>
+              {remainingVotes !== null && remainingVotes <= 0 ? '🎉 完成' : '👍 繼續投票'}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Game Modal */}
       {showGame && !gameResult && (

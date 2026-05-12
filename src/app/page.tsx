@@ -52,6 +52,11 @@ export default async function Page() {
     prisma.setting.findUnique({ where: { campaignId_key: { campaignId: campaign.id, key: 'companyName' } } }),
   ]);
 
+  // Get thank you message
+  const thankYouSetting = await prisma.setting.findUnique({
+    where: { campaignId_key: { campaignId: campaign.id, key: 'thankYouMessage' } },
+  });
+
   return (
     <HomePage
       campaign={JSON.parse(JSON.stringify(campaign))}
@@ -61,6 +66,7 @@ export default async function Page() {
       logoUrl={logoSetting?.value || ''}
       companyName={companyNameSetting?.value || ''}
       votesPerGame={votesPerGame}
+      thankYouMessage={thankYouSetting?.value || ''}
     />
   );
 }
