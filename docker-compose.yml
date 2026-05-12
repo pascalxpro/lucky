@@ -1,0 +1,17 @@
+services:
+  web:
+    build: .
+    container_name: riiqi-lucky
+    ports:
+      - "3003:3000"
+    volumes:
+      - lucky-data:/app/prisma
+      - lucky-uploads:/app/uploads
+    restart: unless-stopped
+    environment:
+      - DATABASE_URL=file:./prisma/dev.db
+      - NODE_ENV=production
+
+volumes:
+  lucky-data:
+  lucky-uploads:

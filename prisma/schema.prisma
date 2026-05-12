@@ -1,0 +1,104 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Campaign {
+  id          String    @id @default(cuid())
+  name        String
+  description String?
+  gameMode    String    @default("wheel") // wheel | scratch | slot
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  banners     Banner[]
+  projects    Project[]
+  prizes      Prize[]
+  votes       Vote[]
+  winners     Winner[]
+  settings    Setting[]
+}
+
+model Project {
+  id          String   @id @default(cuid())
+  campaignId  String
+  campaign    Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  imageUrl    String?
+  images      String?  // JSON array of image URLs, e.g. '["url1","url2","url3"]'
+  sortOrder   Int      @default(0)
+  votes       Vote[]
+  createdAt   DateTime @default(now())
+}
+
+model Vote {
+  id         String   @id @default(cuid())
+  projectId  String
+  project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  campaignId String
+  campaign   Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  deviceId   String
+  ipAddress  String?
+  createdAt  DateTime @default(now())
+
+  @@unique([projectId, deviceId])
+}
+
+model Prize {
+  id            String   @id @default(cuid())
+  campaignId    String
+  campaign      Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  name          String
+  imageUrl      String?
+  totalStock    Int
+  remaining     Int
+  probability   Float    // weight-based probability
+  isConsolation Boolean  @default(false)
+  sortOrder     Int      @default(0)
+  winners       Winner[]
+  createdAt     DateTime @default(now())
+}
+
+model Winner {
+  id         String   @id @default(cuid())
+  campaignId String
+  campaign   Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  prizeId    String
+  prize      Prize    @relation(fields: [prizeId], references: [id], onDelete: Cascade)
+  deviceId   String
+  userName   String?
+  phone      String?
+  address    String?
+  status     String   @default("pending") // pending | confirmed | shipped
+  createdAt  DateTime @default(now())
+}
+
+model Banner {
+  id         String   @id @default(cuid())
+  campaignId String
+  campaign   Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  imageUrl   String
+  linkUrl    String?
+  sortOrder  Int      @default(0)
+}
+
+model Setting {
+  id         String   @id @default(cuid())
+  campaignId String
+  campaign   Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  key        String
+  value      String
+
+  @@unique([campaignId, key])
+}
+
+model AdminUser {
+  id           String   @id @default(cuid())
+  username     String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+}
