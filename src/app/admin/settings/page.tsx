@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { getCampaigns, updateCampaign, getSetting, setSetting } from '@/lib/actions';
+import { getCampaigns, updateCampaign, getSetting, setSetting, getPrizes } from '@/lib/actions';
 import { THEME_PRESETS, IMAGE_DIMENSIONS, themeToCSS, type ThemePreset } from '@/lib/themes';
 import { Save, Palette, Music, FileText, Gamepad2, Image, Type, Check, Ruler, Vote, ChevronDown, ChevronUp, Play, X, Globe, Building2 } from 'lucide-react';
 import ImageUploader from '@/components/ImageUploader';
@@ -11,7 +11,7 @@ const WheelGame = dynamic(() => import('@/components/games/WheelGame'), { ssr: f
 const ScratchGame = dynamic(() => import('@/components/games/ScratchGame'), { ssr: false });
 const SlotGame = dynamic(() => import('@/components/games/SlotGame'), { ssr: false });
 
-const PREVIEW_PRIZES = [
+const FALLBACK_PRIZES = [
   { id: 'p1', name: '🎁 體驗大獎' }, { id: 'p2', name: '🎫 體驗禮券' },
   { id: 'p3', name: '⭐ 體驗小獎' }, { id: 'p4', name: '🎯 再接再厲' },
   { id: 'p5', name: '💎 鑽石獎' }, { id: 'p6', name: '🌟 幸運獎' },
@@ -61,6 +61,7 @@ export default function SettingsPage() {
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'theme' | 'game' | 'branding' | 'system'>('theme');
+  const [realPrizes, setRealPrizes] = useState<{ id: string; name: string }[]>([]);
 
   useEffect(() => {
     (async () => {
@@ -97,6 +98,11 @@ export default function SettingsPage() {
         if (cn) setCompanyName(cn);
         const tym = await getSetting(active.id, 'thankYouMessage');
         if (tym) setThankYouMessage(tym);
+        // Load actual prizes for game preview
+        const prizes = await getPrizes(active.id);
+        if (prizes.length > 0) {
+          setRealPrizes(prizes.map(p => ({ id: p.id, name: p.name })));
+        }
       }
       setLoading(false);
     })();
@@ -664,7 +670,7 @@ export default function SettingsPage() {
               <X size={18} />
             </button>
             <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginBottom: '1rem', textAlign: 'center' }}>🎮 試玩模式 — 結果不會記錄</div>
-            {previewGame === 'wheel' && <WheelGame prizes={PREVIEW_PRIZES} onComplete={() => {}} />}
+            {previewGame === 'wheel' && <WheelGame prizes={realPrizes.length > 0 ? realPrizes : FALLBACK_PRIZES} onComplete={() => {}} />}
             {previewGame === 'scratch' && <ScratchGame onComplete={() => {}} />}
             {previewGame === 'slot' && <SlotGame onComplete={() => {}} />}
             <div style={{ textAlign: 'center', marginTop: '1rem' }}>
