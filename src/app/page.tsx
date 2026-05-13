@@ -9,7 +9,7 @@ export default async function Page() {
     include: {
       projects: { orderBy: { sortOrder: 'asc' }, include: { _count: { select: { votes: true } } } },
       banners: { orderBy: { sortOrder: 'asc' } },
-      prizes: { where: { isConsolation: false }, orderBy: { sortOrder: 'asc' }, take: 4 },
+      prizes: { orderBy: { sortOrder: 'asc' } },
     },
   });
 

@@ -21,7 +21,7 @@ interface Campaign {
     imageUrl: string | null; images: string | null; _count: { votes: number };
   }>;
   banners: Array<{ id: string; imageUrl: string; linkUrl: string | null }>;
-  prizes: Array<{ id: string; name: string; imageUrl: string | null }>;
+  prizes: Array<{ id: string; name: string; imageUrl: string | null; isConsolation: boolean }>;
 }
 
 interface LotteryResult {
@@ -585,18 +585,21 @@ export default function HomePage({ campaign, maxVotesPerPerson = 0, campaignDeta
         )}
 
         {/* Prize Showcase */}
-        {campaign.prizes.length > 0 && (
+        {campaign.prizes.filter(p => !p.isConsolation).length > 0 && (
           <div style={{ textAlign: 'center', marginBottom: '3rem' }} className="animate-slide-up">
             <h2 style={{ fontSize: 'var(--prize-title-size, 1.3rem)', fontWeight: 700, marginBottom: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', color: 'var(--prize-title-color, inherit)', fontFamily: 'var(--prize-font, var(--font-heading))' }}>
               <Trophy size={22} style={{ color: 'var(--accent)' }} />
               <span className="text-gold" style={{ color: 'var(--prize-title-color, inherit)' }}>豐富獎品等你拿</span>
             </h2>
+            {(() => {
+              const showcasePrizes = campaign.prizes.filter(p => !p.isConsolation).slice(0, 4);
+              return (
             <div style={{
               display: 'grid',
-              gridTemplateColumns: `repeat(${Math.min(campaign.prizes.length, 4)}, 1fr)`,
+              gridTemplateColumns: `repeat(${Math.min(showcasePrizes.length, 4)}, 1fr)`,
               gap: '1rem', maxWidth: 800, margin: '0 auto',
             }}>
-              {campaign.prizes.map((prize, i) => {
+              {showcasePrizes.map((prize, i) => {
                 const rankEmoji = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '🎁';
                 const isTop = i === 0;
                 return (
@@ -646,6 +649,8 @@ export default function HomePage({ campaign, maxVotesPerPerson = 0, campaignDeta
                 );
               })}
             </div>
+              );
+            })()}
           </div>
         )}
 
