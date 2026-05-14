@@ -11,7 +11,7 @@ if [ ! -s "$DB_FILE" ]; then
       CREATE TABLE IF NOT EXISTS Project (id TEXT PRIMARY KEY, campaignId TEXT NOT NULL, name TEXT NOT NULL, description TEXT, imageUrl TEXT, sortOrder INTEGER DEFAULT 0, createdAt TEXT DEFAULT (datetime('now')), FOREIGN KEY (campaignId) REFERENCES Campaign(id) ON DELETE CASCADE);
       CREATE TABLE IF NOT EXISTS Vote (id TEXT PRIMARY KEY, projectId TEXT NOT NULL, campaignId TEXT NOT NULL, deviceId TEXT NOT NULL, ipAddress TEXT, createdAt TEXT DEFAULT (datetime('now')), FOREIGN KEY (projectId) REFERENCES Project(id) ON DELETE CASCADE, FOREIGN KEY (campaignId) REFERENCES Campaign(id) ON DELETE CASCADE);
       CREATE UNIQUE INDEX IF NOT EXISTS Vote_projectId_deviceId_key ON Vote(projectId, deviceId);
-      CREATE TABLE IF NOT EXISTS Prize (id TEXT PRIMARY KEY, campaignId TEXT NOT NULL, name TEXT NOT NULL, imageUrl TEXT, totalStock INTEGER NOT NULL, remaining INTEGER NOT NULL, probability REAL NOT NULL, isConsolation INTEGER DEFAULT 0, sortOrder INTEGER DEFAULT 0, createdAt TEXT DEFAULT (datetime('now')), FOREIGN KEY (campaignId) REFERENCES Campaign(id) ON DELETE CASCADE);
+      CREATE TABLE IF NOT EXISTS Prize (id TEXT PRIMARY KEY, campaignId TEXT NOT NULL, name TEXT NOT NULL, imageUrl TEXT, totalStock INTEGER NOT NULL, remaining INTEGER NOT NULL, probability REAL NOT NULL, isConsolation INTEGER DEFAULT 0, requireClaimInfo INTEGER DEFAULT 1, sortOrder INTEGER DEFAULT 0, createdAt TEXT DEFAULT (datetime('now')), FOREIGN KEY (campaignId) REFERENCES Campaign(id) ON DELETE CASCADE);
       CREATE TABLE IF NOT EXISTS Winner (id TEXT PRIMARY KEY, campaignId TEXT NOT NULL, prizeId TEXT NOT NULL, deviceId TEXT NOT NULL, userName TEXT, phone TEXT, address TEXT, status TEXT DEFAULT 'pending', createdAt TEXT DEFAULT (datetime('now')), FOREIGN KEY (campaignId) REFERENCES Campaign(id) ON DELETE CASCADE, FOREIGN KEY (prizeId) REFERENCES Prize(id) ON DELETE CASCADE);
       CREATE TABLE IF NOT EXISTS Banner (id TEXT PRIMARY KEY, campaignId TEXT NOT NULL, imageUrl TEXT NOT NULL, linkUrl TEXT, sortOrder INTEGER DEFAULT 0, FOREIGN KEY (campaignId) REFERENCES Campaign(id) ON DELETE CASCADE);
       CREATE TABLE IF NOT EXISTS Setting (id TEXT PRIMARY KEY, campaignId TEXT NOT NULL, key TEXT NOT NULL, value TEXT NOT NULL, FOREIGN KEY (campaignId) REFERENCES Campaign(id) ON DELETE CASCADE);
@@ -54,6 +54,12 @@ node -e "
   if (!cols.includes('images')) {
     db.exec('ALTER TABLE Project ADD COLUMN images TEXT');
     console.log('✅ Added images column to Project');
+  }
+  // Add requireClaimInfo to Prize if missing
+  const prizeCols = db.pragma('table_info(Prize)').map(c => c.name);
+  if (!prizeCols.includes('requireClaimInfo')) {
+    db.exec('ALTER TABLE Prize ADD COLUMN requireClaimInfo INTEGER DEFAULT 1');
+    console.log('✅ Added requireClaimInfo column to Prize');
   }
   db.close();
 "
