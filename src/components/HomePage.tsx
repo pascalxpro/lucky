@@ -592,11 +592,11 @@ export default function HomePage({ campaign, maxVotesPerPerson = 0, campaignDeta
               <span className="text-gold" style={{ color: 'var(--prize-title-color, inherit)' }}>豐富獎品等你拿</span>
             </h2>
             {(() => {
-              const showcasePrizes = campaign.prizes.filter(p => !p.isConsolation).slice(0, 4);
+              const showcasePrizes = campaign.prizes.filter(p => !p.isConsolation).slice(0, 5);
               return (
             <div style={{
               display: 'grid',
-              gridTemplateColumns: `repeat(${Math.min(showcasePrizes.length, 4)}, 1fr)`,
+              gridTemplateColumns: `repeat(${Math.min(showcasePrizes.length, 5)}, 1fr)`,
               gap: '1rem', maxWidth: 800, margin: '0 auto',
             }}>
               {showcasePrizes.map((prize, i) => {
