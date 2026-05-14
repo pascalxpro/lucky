@@ -17,6 +17,7 @@ if [ ! -s "$DB_FILE" ]; then
       CREATE TABLE IF NOT EXISTS Setting (id TEXT PRIMARY KEY, campaignId TEXT NOT NULL, key TEXT NOT NULL, value TEXT NOT NULL, FOREIGN KEY (campaignId) REFERENCES Campaign(id) ON DELETE CASCADE);
       CREATE UNIQUE INDEX IF NOT EXISTS Setting_campaignId_key_key ON Setting(campaignId, key);
       CREATE TABLE IF NOT EXISTS AdminUser (id TEXT PRIMARY KEY, username TEXT NOT NULL UNIQUE, passwordHash TEXT NOT NULL, createdAt TEXT DEFAULT (datetime('now')));
+      CREATE TABLE IF NOT EXISTS PageView (id TEXT PRIMARY KEY, campaignId TEXT NOT NULL, type TEXT NOT NULL, targetId TEXT, deviceId TEXT NOT NULL, ipAddress TEXT, createdAt TEXT DEFAULT (datetime('now')));
     \`);
     db.close();
     console.log('✅ Tables created');
@@ -60,6 +61,12 @@ node -e "
   if (!prizeCols.includes('requireClaimInfo')) {
     db.exec('ALTER TABLE Prize ADD COLUMN requireClaimInfo INTEGER DEFAULT 1');
     console.log('✅ Added requireClaimInfo column to Prize');
+  }
+  // Create PageView table if missing
+  const tables = db.prepare(\"SELECT name FROM sqlite_master WHERE type='table' AND name='PageView'\").all();
+  if (tables.length === 0) {
+    db.exec('CREATE TABLE PageView (id TEXT PRIMARY KEY, campaignId TEXT NOT NULL, type TEXT NOT NULL, targetId TEXT, deviceId TEXT NOT NULL, ipAddress TEXT, createdAt TEXT DEFAULT (datetime(\'now\')))');
+    console.log('✅ Created PageView table');
   }
   db.close();
 "

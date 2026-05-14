@@ -97,6 +97,16 @@ model Setting {
   @@unique([campaignId, key])
 }
 
+model PageView {
+  id         String   @id @default(cuid())
+  campaignId String
+  type       String   // "visit" = homepage, "project_view" = clicked project
+  targetId   String?  // projectId for project_view, null for visit
+  deviceId   String
+  ipAddress  String?
+  createdAt  DateTime @default(now())
+}
+
 model AdminUser {
   id           String   @id @default(cuid())
   username     String   @unique

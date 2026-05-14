@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { getDashboardStats, getCampaigns } from '@/lib/actions';
-import { BarChart3, Users, Trophy, TrendingUp, Vote, Eye, Download } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { BarChart3, Users, Trophy, TrendingUp, Vote, Eye, Download, MousePointerClick } from 'lucide-react';
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar, Legend } from 'recharts';
 
 const COLORS = ['#7c3aed', '#ec4899', '#f59e0b', '#10b981', '#3b82f6', '#ef4444'];
 
@@ -28,6 +28,13 @@ export default function DashboardPage() {
   if (loading) return <div style={{ padding: '2rem', textAlign: 'center' }}><p>載入中...</p></div>;
   if (!stats) return <div style={{ padding: '2rem', textAlign: 'center' }}><p>尚無進行中的活動</p></div>;
 
+  // Merge vote + visitor daily trend for dual-line chart
+  const mergedTrend = stats.dailyTrend.map((item, i) => ({
+    date: item.date,
+    votes: item.count,
+    visitors: stats.dailyVisitorTrend[i]?.count || 0,
+  }));
+
   return (
     <div>
       <div className="admin-header">
@@ -35,15 +42,21 @@ export default function DashboardPage() {
         <button className="btn btn-outline btn-sm"><Download size={16} /> 匯出報表</button>
       </div>
 
-      {/* KPI Cards */}
-      <div className="stats-grid">
+      {/* KPI Cards — Row 1 */}
+      <div className="stats-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))' }}>
+        <div className="stat-card">
+          <div className="stat-card-label"><Eye size={14} style={{ display: 'inline', marginRight: 4 }} /> 累計訪客</div>
+          <div className="stat-card-value" style={{ color: 'var(--info)' }}>{stats.totalVisitors.toLocaleString()}</div>
+          <div className="stat-card-trend" style={{ color: 'var(--success)' }}>
+            今日 {stats.todayVisitors} 人
+          </div>
+        </div>
         <div className="stat-card">
           <div className="stat-card-label"><Vote size={14} style={{ display: 'inline', marginRight: 4 }} /> 累積投票數</div>
           <div className="stat-card-value text-gradient">{stats.totalVotes.toLocaleString()}</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-card-label"><Eye size={14} style={{ display: 'inline', marginRight: 4 }} /> 獨立訪客</div>
-          <div className="stat-card-value" style={{ color: 'var(--info)' }}>{stats.uniqueDevices.toLocaleString()}</div>
+          <div className="stat-card-trend" style={{ color: 'var(--text-muted)' }}>
+            {stats.uniqueDevices} 位投票者
+          </div>
         </div>
         <div className="stat-card">
           <div className="stat-card-label"><Trophy size={14} style={{ display: 'inline', marginRight: 4 }} /> 中獎人數</div>
@@ -55,23 +68,29 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Charts */}
+      {/* Charts Row 1: Trend + Pie */}
       <div className="chart-grid">
         <div className="chart-card">
-          <div className="chart-card-title">📈 每日投票趨勢（近 14 天）</div>
-          <ResponsiveContainer width="100%" height={250}>
-            <LineChart data={stats.dailyTrend}>
+          <div className="chart-card-title">📈 每日訪客 vs 投票趨勢（近 14 天）</div>
+          <ResponsiveContainer width="100%" height={260}>
+            <LineChart data={mergedTrend}>
               <XAxis dataKey="date" tick={{ fill: '#94a3b8', fontSize: 11 }} tickFormatter={v => v.slice(5)} />
               <YAxis tick={{ fill: '#94a3b8', fontSize: 11 }} />
-              <Tooltip contentStyle={{ background: '#1e293b', border: '1px solid #334155', borderRadius: 8 }} />
-              <Line type="monotone" dataKey="count" stroke="#7c3aed" strokeWidth={2} dot={{ fill: '#7c3aed', r: 3 }} />
+              <Tooltip
+                contentStyle={{ background: '#1e293b', border: '1px solid #334155', borderRadius: 8 }}
+                formatter={(value: unknown, name: unknown) => [String(value), name === 'visitors' ? '訪客' : '投票']}
+                labelFormatter={label => `日期: ${label}`}
+              />
+              <Legend formatter={value => value === 'visitors' ? '👁️ 訪客' : '🗳️ 投票'} />
+              <Line type="monotone" dataKey="visitors" stroke="#3b82f6" strokeWidth={2} dot={{ fill: '#3b82f6', r: 3 }} strokeDasharray="5 5" />
+              <Line type="monotone" dataKey="votes" stroke="#7c3aed" strokeWidth={2} dot={{ fill: '#7c3aed', r: 3 }} />
             </LineChart>
           </ResponsiveContainer>
         </div>
 
         <div className="chart-card">
           <div className="chart-card-title">🥧 作品得票分佈</div>
-          <ResponsiveContainer width="100%" height={250}>
+          <ResponsiveContainer width="100%" height={260}>
             <PieChart>
               <Pie data={stats.projectVotes} dataKey="votes" nameKey="name" cx="50%" cy="50%" outerRadius={90} label={({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`}>
                 {stats.projectVotes.map((_, i) => (
@@ -80,6 +99,26 @@ export default function DashboardPage() {
               </Pie>
               <Tooltip contentStyle={{ background: '#1e293b', border: '1px solid #334155', borderRadius: 8 }} />
             </PieChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* Charts Row 2: Project Views */}
+      <div className="chart-grid" style={{ marginBottom: '2rem' }}>
+        <div className="chart-card" style={{ gridColumn: '1 / -1' }}>
+          <div className="chart-card-title"><MousePointerClick size={16} style={{ display: 'inline', marginRight: 6 }} />作品點閱統計（投票 vs 瀏覽）</div>
+          <ResponsiveContainer width="100%" height={Math.max(200, stats.projectVotes.length * 45)}>
+            <BarChart data={stats.projectVotes} layout="vertical" margin={{ left: 20 }}>
+              <XAxis type="number" tick={{ fill: '#94a3b8', fontSize: 11 }} />
+              <YAxis type="category" dataKey="name" tick={{ fill: '#e2e8f0', fontSize: 12 }} width={120} />
+              <Tooltip
+                contentStyle={{ background: '#1e293b', border: '1px solid #334155', borderRadius: 8 }}
+                formatter={(value: unknown, name: unknown) => [String(value), name === 'views' ? '👁️ 瀏覽次數' : '🗳️ 得票數']}
+              />
+              <Legend formatter={value => value === 'views' ? '👁️ 瀏覽' : '🗳️ 投票'} />
+              <Bar dataKey="views" fill="#3b82f6" radius={[0, 4, 4, 0]} name="views" />
+              <Bar dataKey="votes" fill="#7c3aed" radius={[0, 4, 4, 0]} name="votes" />
+            </BarChart>
           </ResponsiveContainer>
         </div>
       </div>

@@ -292,6 +292,29 @@ export default function HomePage({ campaign, maxVotesPerPerson = 0, campaignDeta
     return () => clearInterval(timer);
   }, [campaign.banners.length]);
 
+  // ── Visitor tracking ──
+  useEffect(() => {
+    try {
+      const deviceId = getDeviceId();
+      fetch('/api/track', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ campaignId: campaign.id, type: 'visit', deviceId }),
+      }).catch(() => {});
+    } catch {}
+  }, [campaign.id]);
+
+  const trackProjectView = useCallback((projectId: string) => {
+    try {
+      const deviceId = getDeviceId();
+      fetch('/api/track', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ campaignId: campaign.id, type: 'project_view', targetId: projectId, deviceId }),
+      }).catch(() => {});
+    } catch {}
+  }, [campaign.id]);
+
   const handleVote = useCallback(async (projectId: string) => {
     if (votedProjects.has(projectId) || voting) return;
     // Check client-side limit
@@ -723,7 +746,7 @@ export default function HomePage({ campaign, maxVotesPerPerson = 0, campaignDeta
             const isDisabled = hasVoted || isVoting || (limitReached && !hasVoted);
             return (
               <div key={project.id} className="project-card animate-slide-up">
-                <div onClick={() => setSelectedProject(project)} style={{ cursor: 'pointer', position: 'relative' }}>
+                <div onClick={() => { setSelectedProject(project); trackProjectView(project.id); }} style={{ cursor: 'pointer', position: 'relative' }}>
                   <ProjectCardImage project={project} />
                   {/* Zoom hint */}
                   <div style={{

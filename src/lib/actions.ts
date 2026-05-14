@@ -174,14 +174,48 @@ export async function getDashboardStats(campaignId: string) {
     }),
   ]);
 
-  // Daily vote trend (last 14 days)
+  // ── PageView stats ──
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
   const fourteenDaysAgo = new Date();
   fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
-  const recentVotes = await prisma.vote.findMany({
-    where: { campaignId, createdAt: { gte: fourteenDaysAgo } },
-    select: { createdAt: true },
+
+  const [
+    totalVisitors,
+    todayVisitors,
+    recentVisits,
+    projectViews,
+    recentVotes,
+  ] = await Promise.all([
+    // Total unique visitors (all time)
+    prisma.pageView.groupBy({ by: ['deviceId'], where: { campaignId, type: 'visit' } }).then(r => r.length),
+    // Today's unique visitors
+    prisma.pageView.groupBy({ by: ['deviceId'], where: { campaignId, type: 'visit', createdAt: { gte: today } } }).then(r => r.length),
+    // Recent visit records for daily trend
+    prisma.pageView.findMany({
+      where: { campaignId, type: 'visit', createdAt: { gte: fourteenDaysAgo } },
+      select: { createdAt: true, deviceId: true },
+    }),
+    // Per-project view counts
+    prisma.pageView.groupBy({
+      by: ['targetId'],
+      where: { campaignId, type: 'project_view', targetId: { not: null } },
+      _count: { _all: true },
+    }),
+    // Recent votes for daily trend
+    prisma.vote.findMany({
+      where: { campaignId, createdAt: { gte: fourteenDaysAgo } },
+      select: { createdAt: true },
+    }),
+  ]);
+
+  // Build project view count map
+  const projectViewMap: Record<string, number> = {};
+  projectViews.forEach(pv => {
+    if (pv.targetId) projectViewMap[pv.targetId] = pv._count._all;
   });
 
+  // Daily vote trend (last 14 days)
   const dailyTrend: Record<string, number> = {};
   for (let i = 13; i >= 0; i--) {
     const d = new Date();
@@ -193,6 +227,18 @@ export async function getDashboardStats(campaignId: string) {
     if (dailyTrend[day] !== undefined) dailyTrend[day]++;
   });
 
+  // Daily visitor trend (last 14 days) — unique devices per day
+  const dailyVisitorMap: Record<string, Set<string>> = {};
+  for (let i = 13; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    dailyVisitorMap[d.toISOString().split('T')[0]] = new Set();
+  }
+  recentVisits.forEach(v => {
+    const day = v.createdAt.toISOString().split('T')[0];
+    if (dailyVisitorMap[day]) dailyVisitorMap[day].add(v.deviceId);
+  });
+
   const total = totalWinners + missCount;
   const winRate = total > 0 ? ((totalWinners / total) * 100).toFixed(1) : '0';
 
@@ -202,8 +248,16 @@ export async function getDashboardStats(campaignId: string) {
     totalWinners,
     missCount,
     winRate,
+    // Visitor stats
+    totalVisitors,
+    todayVisitors,
     dailyTrend: Object.entries(dailyTrend).map(([date, count]) => ({ date, count })),
-    projectVotes: projects.map(p => ({ name: p.name, votes: p._count.votes })),
+    dailyVisitorTrend: Object.entries(dailyVisitorMap).map(([date, set]) => ({ date, count: set.size })),
+    projectVotes: projects.map(p => ({
+      name: p.name,
+      votes: p._count.votes,
+      views: projectViewMap[p.id] || 0,
+    })),
     prizeInventory: prizes.map(p => ({
       name: p.name,
       totalStock: p.totalStock,
