@@ -52,6 +52,10 @@ export async function POST(req: NextRequest) {
       });
     });
 
+    // Get requireClaimInfo from the won prize
+    const wonPrize = result.prizeId ? prizes.find(p => p.id === result.prizeId) : null;
+    const requireClaimInfo = wonPrize ? wonPrize.requireClaimInfo : false;
+
     return NextResponse.json({
       success: true,
       winnerId: winner.id,
@@ -59,6 +63,7 @@ export async function POST(req: NextRequest) {
       prizeName: result.prizeName,
       isWin: result.isWin,
       isConsolation: result.isConsolation,
+      requireClaimInfo,
     });
   } catch (error: unknown) {
     console.error('Lottery error:', error);

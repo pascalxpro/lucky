@@ -77,9 +77,9 @@ export default function PrizesPage() {
   const [campaignId, setCampaignId] = useState('');
   const [prizes, setPrizes] = useState<Prize[]>([]);
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ name: '', totalStock: 10, probability: 10, isConsolation: false, imageUrl: '' });
+  const [form, setForm] = useState({ name: '', totalStock: 10, probability: 10, isConsolation: false, requireClaimInfo: true, imageUrl: '' });
   const [editId, setEditId] = useState<string | null>(null);
-  const [editForm, setEditForm] = useState({ name: '', totalStock: 10, remaining: 10, probability: 10, isConsolation: false, imageUrl: '' });
+  const [editForm, setEditForm] = useState({ name: '', totalStock: 10, remaining: 10, probability: 10, isConsolation: false, requireClaimInfo: true, imageUrl: '' });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -100,7 +100,7 @@ export default function PrizesPage() {
     e.preventDefault();
     setSaving(true);
     await createPrize({ campaignId, ...form, remaining: form.totalStock });
-    setForm({ name: '', totalStock: 10, probability: 10, isConsolation: false, imageUrl: '' });
+    setForm({ name: '', totalStock: 10, probability: 10, isConsolation: false, requireClaimInfo: true, imageUrl: '' });
     setShowForm(false);
     await load();
     setSaving(false);
@@ -110,7 +110,7 @@ export default function PrizesPage() {
     setEditId(p.id);
     setEditForm({
       name: p.name, totalStock: p.totalStock, remaining: p.remaining,
-      probability: p.probability, isConsolation: p.isConsolation, imageUrl: p.imageUrl || '',
+      probability: p.probability, isConsolation: p.isConsolation, requireClaimInfo: p.requireClaimInfo, imageUrl: p.imageUrl || '',
     });
     setShowForm(false);
   };
@@ -192,6 +192,15 @@ export default function PrizesPage() {
                 <input type="checkbox" checked={form.isConsolation} onChange={e => setForm(f => ({ ...f, isConsolation: e.target.checked }))} style={{ width: 'auto' }} />
                 安慰獎 / 未中獎
               </label>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', gridColumn: '1 / -1', padding: '0.6rem 0.75rem', borderRadius: 'var(--radius-sm)', background: form.requireClaimInfo ? 'rgba(16,185,129,0.08)' : 'rgba(239,68,68,0.06)', border: `1px solid ${form.requireClaimInfo ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.15)'}` }}>
+                <input type="checkbox" checked={form.requireClaimInfo} onChange={e => setForm(f => ({ ...f, requireClaimInfo: e.target.checked }))} style={{ width: 'auto' }} />
+                <div>
+                  <div style={{ fontWeight: 600 }}>中獎需填個資</div>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: 1 }}>
+                    {form.requireClaimInfo ? '✅ 中獎後需填寫姓名、手機、地址' : '⚠️ 中獎後僅顯示恭喜訊息'}
+                  </div>
+                </div>
+              </label>
               <div style={{ gridColumn: '1 / -1', display: 'flex', gap: '0.75rem' }}>
                 <button type="submit" className="btn btn-primary btn-sm" disabled={saving}>{saving ? '建立中...' : '建立'}</button>
                 <button type="button" className="btn btn-outline btn-sm" onClick={() => setShowForm(false)}>取消</button>
@@ -243,6 +252,15 @@ export default function PrizesPage() {
                   安慰獎
                 </label>
               </div>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', gridColumn: '1 / -1', padding: '0.6rem 0.75rem', borderRadius: 'var(--radius-sm)', background: editForm.requireClaimInfo ? 'rgba(16,185,129,0.08)' : 'rgba(239,68,68,0.06)', border: `1px solid ${editForm.requireClaimInfo ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.15)'}` }}>
+                <input type="checkbox" checked={editForm.requireClaimInfo} onChange={e => setEditForm(f => ({ ...f, requireClaimInfo: e.target.checked }))} style={{ width: 'auto' }} />
+                <div>
+                  <div style={{ fontWeight: 600 }}>中獎需填個資</div>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: 1 }}>
+                    {editForm.requireClaimInfo ? '✅ 中獎後需填寫姓名、手機、地址' : '⚠️ 中獎後僅顯示恭喜訊息'}
+                  </div>
+                </div>
+              </label>
               <div style={{ gridColumn: '1 / -1', display: 'flex', gap: '0.5rem' }}>
                 <button className="btn btn-primary btn-sm" onClick={handleSaveEdit} disabled={saving}>
                   <Save size={14} /> {saving ? '儲存中...' : '儲存'}
@@ -262,7 +280,7 @@ export default function PrizesPage() {
 
       <table className="data-table">
         <thead>
-          <tr><th>獎品名稱</th><th>庫存</th><th>剩餘</th><th>已派出</th><th>機率權重</th><th>實際機率</th><th>狀態</th><th>操作</th></tr>
+          <tr><th>獎品名稱</th><th>庫存</th><th>剩餘</th><th>已派出</th><th>機率權重</th><th>實際機率</th><th>領獎</th><th>狀態</th><th>操作</th></tr>
         </thead>
         <tbody>
           {prizes.map(p => {
@@ -286,6 +304,13 @@ export default function PrizesPage() {
                   />
                 </td>
                 <td className="font-en" style={{ fontWeight: 600 }}>{pct}%</td>
+                <td>
+                  {p.requireClaimInfo ? (
+                    <span className="badge badge-success" style={{ fontSize: '0.65rem' }}>📋 需填資料</span>
+                  ) : (
+                    <span className="badge badge-gold" style={{ fontSize: '0.65rem' }}>🎊 免填</span>
+                  )}
+                </td>
                 <td>
                   {outOfStock ? (
                     <span className="badge badge-danger"><Lock size={10} /> 已鎖定</span>

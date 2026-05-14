@@ -78,12 +78,12 @@ export async function getPrizes(campaignId: string) {
   });
 }
 
-export async function createPrize(data: { campaignId: string; name: string; totalStock: number; remaining: number; probability: number; isConsolation?: boolean; imageUrl?: string }) {
+export async function createPrize(data: { campaignId: string; name: string; totalStock: number; remaining: number; probability: number; isConsolation?: boolean; requireClaimInfo?: boolean; imageUrl?: string }) {
   const maxOrder = await prisma.prize.aggregate({ where: { campaignId: data.campaignId }, _max: { sortOrder: true } });
   return prisma.prize.create({ data: { ...data, sortOrder: (maxOrder._max.sortOrder ?? 0) + 1 } });
 }
 
-export async function updatePrize(id: string, data: { name?: string; totalStock?: number; remaining?: number; probability?: number; isConsolation?: boolean; imageUrl?: string }) {
+export async function updatePrize(id: string, data: { name?: string; totalStock?: number; remaining?: number; probability?: number; isConsolation?: boolean; requireClaimInfo?: boolean; imageUrl?: string }) {
   return prisma.prize.update({ where: { id }, data });
 }
 

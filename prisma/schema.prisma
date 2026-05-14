@@ -57,8 +57,9 @@ model Prize {
   totalStock    Int
   remaining     Int
   probability   Float    // weight-based probability
-  isConsolation Boolean  @default(false)
-  sortOrder     Int      @default(0)
+  isConsolation   Boolean  @default(false)
+  requireClaimInfo Boolean  @default(true)
+  sortOrder       Int      @default(0)
   winners       Winner[]
   createdAt     DateTime @default(now())
 }

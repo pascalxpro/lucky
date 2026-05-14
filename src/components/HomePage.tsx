@@ -29,6 +29,7 @@ interface LotteryResult {
   prizeName: string;
   isWin: boolean;
   isConsolation: boolean;
+  requireClaimInfo: boolean;
 }
 
 /** Parse images JSON from DB */
@@ -357,6 +358,7 @@ export default function HomePage({ campaign, maxVotesPerPerson = 0, campaignDeta
           prizeName: data.prizeName,
           isWin: data.isWin,
           isConsolation: data.isConsolation,
+          requireClaimInfo: data.requireClaimInfo ?? true,
         });
         if (data.isWin) {
           audioManager.playWin();
@@ -469,7 +471,7 @@ export default function HomePage({ campaign, maxVotesPerPerson = 0, campaignDeta
           result={gameResult}
           onClaim={handleClaimPrize}
           onClose={handleCloseResult}
-          requireClaimInfo={requireClaimInfo}
+          requireClaimInfo={gameResult.requireClaimInfo}
         />
       )}
 
