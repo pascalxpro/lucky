@@ -48,6 +48,7 @@ export default function SettingsPage() {
   const [customBodySize, setCustomBodySize] = useState('16');
   const [customRadius, setCustomRadius] = useState('16');
   const [maxVotesPerPerson, setMaxVotesPerPerson] = useState(0);
+  const [maxVotesPerIP, setMaxVotesPerIP] = useState(0);
   const [votesPerGame, setVotesPerGame] = useState(1);
   const [sectionStyles, setSectionStyles] = useState<SectionStyles>({});
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
@@ -82,6 +83,8 @@ export default function SettingsPage() {
         if (cr) setCustomRadius(cr);
         const mvp = await getSetting(active.id, 'maxVotesPerPerson');
         if (mvp) setMaxVotesPerPerson(parseInt(mvp, 10));
+        const mvip = await getSetting(active.id, 'maxVotesPerIP');
+        if (mvip) setMaxVotesPerIP(parseInt(mvip, 10));
         const vpg = await getSetting(active.id, 'votesPerGame');
         if (vpg) setVotesPerGame(parseInt(vpg, 10));
         const ss = await getSetting(active.id, 'sectionStyles');
@@ -117,6 +120,7 @@ export default function SettingsPage() {
     await setSetting(campaignId, 'bodySize', customBodySize);
     await setSetting(campaignId, 'cardRadius', customRadius);
     await setSetting(campaignId, 'maxVotesPerPerson', String(maxVotesPerPerson));
+    await setSetting(campaignId, 'maxVotesPerIP', String(maxVotesPerIP));
     await setSetting(campaignId, 'votesPerGame', String(votesPerGame));
     if (Object.keys(sectionStyles).length > 0) {
       await setSetting(campaignId, 'sectionStyles', JSON.stringify(sectionStyles));
@@ -537,6 +541,29 @@ export default function SettingsPage() {
                 {maxVotesPerPerson > 0
                   ? ` 且總共最多可投 ${maxVotesPerPerson} 個不同的作品。`
                   : ' 總票數不限制。'}
+              </div>
+              {/* IP-based rate limit */}
+              <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid var(--admin-border)' }}>
+                <label className="form-label">🛡️ 同一 IP 投票上限（防灌票）</label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                  <input type="number" value={maxVotesPerIP} min={0} max={9999}
+                    onChange={e => setMaxVotesPerIP(Math.max(0, parseInt(e.target.value) || 0))}
+                    style={{ width: 100 }} />
+                  <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                    {maxVotesPerIP === 0 ? '不限制（依設備辨識）' : `同一 IP 最多 ${maxVotesPerIP} 票`}
+                  </span>
+                </div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.5rem', lineHeight: 1.5 }}>
+                  💡 設為 <strong>0</strong> 表示不限制 IP 投票數（僅靠設備指紋防重投）<br />
+                  💡 建議值 <strong>10~50</strong>：可防止同一人用無痕模式重複灌票<br />
+                  ⚠️ 注意：同一公司 / 家庭 / 學校共用 IP，設太低可能影響正常用戶
+                </div>
+              </div>
+              <div style={{ padding: '0.75rem 1rem', background: 'rgba(124,58,237,0.08)', borderRadius: 'var(--radius-sm)', fontSize: '0.82rem', color: 'var(--text-secondary)', marginTop: '0.75rem' }}>
+                🛡️ <strong>防灌票三層防護：</strong><br />
+                ① 設備指紋辨識（同瀏覽器+同設備 = 同人，含無痕模式）<br />
+                ② 每人總票數上限（{maxVotesPerPerson === 0 ? '目前未限制' : `最多 ${maxVotesPerPerson} 票`}）<br />
+                ③ 同 IP 投票上限（{maxVotesPerIP === 0 ? '目前未限制' : `最多 ${maxVotesPerIP} 票`}）
               </div>
             </div>
           </div>

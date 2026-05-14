@@ -9,7 +9,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: '缺少必要參數' }, { status: 400 });
     }
 
-    // Check if device already voted for this project
+    // Get IP address
+    const ipAddress = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
+      || req.headers.get('x-real-ip')
+      || 'unknown';
+
+    // ── Layer 1: Device fingerprint check ──
     const existing = await prisma.vote.findUnique({
       where: { projectId_deviceId: { projectId, deviceId } },
     });
@@ -18,7 +23,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: '您已經為此作品投過票了', alreadyVoted: true }, { status: 409 });
     }
 
-    // ── Check max votes per person ──
+    // ── Layer 2: Max votes per person (device) ──
     const maxVotesSetting = await prisma.setting.findUnique({
       where: { campaignId_key: { campaignId, key: 'maxVotesPerPerson' } },
     });
@@ -38,21 +43,34 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Get IP address
-    const ipAddress = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown';
+    // ── Layer 3: IP-based rate limiting ──
+    const maxVotesPerIPSetting = await prisma.setting.findUnique({
+      where: { campaignId_key: { campaignId, key: 'maxVotesPerIP' } },
+    });
+    const maxVotesPerIP = maxVotesPerIPSetting ? parseInt(maxVotesPerIPSetting.value, 10) : 0; // 0 = unlimited
 
-    // Create vote
+    if (maxVotesPerIP > 0 && ipAddress !== 'unknown') {
+      const ipVotes = await prisma.vote.count({
+        where: { campaignId, ipAddress },
+      });
+      if (ipVotes >= maxVotesPerIP) {
+        return NextResponse.json({
+          error: `此網路環境已達到投票上限（${maxVotesPerIP} 票），請嘗試使用其他網路`,
+          ipLimitReached: true,
+        }, { status: 429 });
+      }
+    }
+
+    // ── Create vote ──
     const vote = await prisma.vote.create({
       data: { projectId, campaignId, deviceId, ipAddress },
     });
 
-    // Get updated vote count
-    const voteCount = await prisma.vote.count({ where: { projectId } });
-
-    // Get user's total votes in this campaign
-    const userTotalVotes = await prisma.vote.count({
-      where: { campaignId, deviceId },
-    });
+    // Get updated counts
+    const [voteCount, userTotalVotes] = await Promise.all([
+      prisma.vote.count({ where: { projectId } }),
+      prisma.vote.count({ where: { campaignId, deviceId } }),
+    ]);
 
     return NextResponse.json({
       success: true,
