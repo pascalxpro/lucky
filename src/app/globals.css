@@ -589,3 +589,19 @@ img { max-width: 100%; display: block; }
   .slot-symbol { width: 70px; height: 70px; font-size: 2rem; }
   .edit-with-preview { grid-template-columns: 1fr; }
 }
+
+/* ============ Prize Showcase Scroll ============ */
+.prize-showcase-scroll {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+}
+.prize-showcase-scroll::-webkit-scrollbar {
+  display: none; /* Chrome/Safari */
+}
+@media (min-width: 769px) {
+  .prize-showcase-scroll {
+    flex-wrap: wrap;
+    justify-content: center !important;
+    overflow-x: visible !important;
+  }
+}

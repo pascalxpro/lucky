@@ -596,18 +596,24 @@ export default function HomePage({ campaign, maxVotesPerPerson = 0, campaignDeta
             {(() => {
               const showcasePrizes = campaign.prizes.filter(p => !p.isConsolation).slice(0, 5);
               return (
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: `repeat(${Math.min(showcasePrizes.length, 5)}, 1fr)`,
-              gap: '1rem', maxWidth: 800, margin: '0 auto',
+            <div className="prize-showcase-scroll" style={{
+              display: 'flex', gap: '0.75rem',
+              overflowX: 'auto', WebkitOverflowScrolling: 'touch',
+              scrollSnapType: 'x mandatory',
+              padding: '0.25rem 0.5rem 0.75rem',
+              maxWidth: 850, margin: '0 auto',
+              justifyContent: showcasePrizes.length <= 3 ? 'center' : undefined,
             }}>
               {showcasePrizes.map((prize, i) => {
                 const rankEmoji = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '🎁';
-                const isTop = i === 0;
                 return (
                   <div key={prize.id} className="glass-card prize-card-animated" style={{
                     padding: 0, overflow: 'hidden', textAlign: 'center',
                     animationDelay: `${i * 0.15}s`,
+                    flex: '0 0 auto',
+                    width: `min(${100 / Math.min(showcasePrizes.length, 5)}% - 0.75rem, 180px)`,
+                    minWidth: 140,
+                    scrollSnapAlign: 'start',
                   }}>
                     {/* Prize Image */}
                     <div style={{
@@ -620,19 +626,19 @@ export default function HomePage({ campaign, maxVotesPerPerson = 0, campaignDeta
                         <img src={prize.imageUrl} alt={prize.name}
                           style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                       ) : (
-                        <span style={{ fontSize: '3.5rem' }}>{rankEmoji}</span>
+                        <span style={{ fontSize: '3rem' }}>{rankEmoji}</span>
                       )}
-                      {/* Rank badge */}
+                      {/* Rank badge — smaller on mobile */}
                       <div style={{
-                        position: 'absolute', top: 8, left: 8,
-                        width: 32, height: 32, borderRadius: '50%',
+                        position: 'absolute', top: 4, left: 4,
+                        width: 22, height: 22, borderRadius: '50%',
                         background: i === 0 ? 'linear-gradient(135deg, #FFD700, #FFA500)' :
                                     i === 1 ? 'linear-gradient(135deg, #C0C0C0, #A0A0A0)' :
                                     i === 2 ? 'linear-gradient(135deg, #CD7F32, #A0522D)' :
                                     'var(--glass)',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontSize: '0.8rem', fontWeight: 800, color: i < 3 ? '#1a1a2e' : 'var(--text)',
-                        boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+                        fontSize: '0.65rem', fontWeight: 800, color: i < 3 ? '#1a1a2e' : 'var(--text)',
+                        boxShadow: '0 1px 4px rgba(0,0,0,0.3)',
                         fontFamily: 'var(--font-en)',
                       }}>
                         {i + 1}
@@ -640,10 +646,11 @@ export default function HomePage({ campaign, maxVotesPerPerson = 0, campaignDeta
                     </div>
                     {/* Prize name */}
                     <div style={{
-                      padding: '0.75rem 0.5rem',
-                      fontSize: isTop ? 'var(--prize-body-size, 0.95rem)' : 'var(--prize-body-size, 0.85rem)',
+                      padding: '0.5rem 0.35rem',
+                      fontSize: 'var(--prize-body-size, 0.8rem)',
                       fontWeight: 700, color: 'var(--prize-body-color, inherit)',
                       fontFamily: 'var(--prize-font, inherit)',
+                      lineHeight: 1.3,
                     }}>
                       {prize.name}
                     </div>
