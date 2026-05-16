@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { getCampaigns, getPrizes, createPrize, updatePrize, deletePrize } from '@/lib/actions';
 import { Plus, Trash2, AlertTriangle, Lock, Edit2, Save, X, Eye, Trophy } from 'lucide-react';
 import ImageUploader from '@/components/ImageUploader';
+import AdminGuide from '@/components/admin/AdminGuide';
 
 type Prize = Awaited<ReturnType<typeof getPrizes>>[0];
 
@@ -159,6 +160,28 @@ export default function PrizesPage() {
           <span className="badge badge-gold"><AlertTriangle size={12} /> 建議調整至 100</span>
         )}
       </div>
+
+      <AdminGuide
+        title="📖 獎品 & 機率引擎 — 設定說明"
+        items={[
+          {
+            title: '機率權重是什麼？',
+            content: `機率權重決定每個獎品被抽到的機率。\n\n計算方式：中獎率 = 該獎品權重 ÷ 所有獎品權重總和 × 100%\n\n建議將所有獎品的權重總和設為 100，方便直覺計算。\n例如權重設為 5，則中獎率就是 5%。`,
+          },
+          {
+            title: '💡 權重設定範例',
+            content: `假設您有 6 個獎項（權重總和 = 100）：\n\n🥇 頭獎 iPhone 16 Pro → 權重 2（中獎率 2%）\n🥈 二獎 AirPods Pro → 權重 5（中獎率 5%）\n🥉 三獎 禮券 $500 → 權重 13（中獎率 13%）\n🎁 四獎 精美小禮物 → 權重 20（中獎率 20%）\n🎈 安慰獎 折價券 → 權重 25（中獎率 25%）\n😊 再接再厲（未中獎）→ 權重 35（中獎率 35%）\n\n提示：權重也支援小數，例如 0.5 表示中獎率 0.5%`,
+          },
+          {
+            title: '💡 庫存與剩餘數量',
+            content: `• 總庫存：該獎品的原始數量\n• 剩餘數量：目前還可派出的數量，每次中獎自動扣 1\n• 當剩餘歸零時，該獎品會被「鎖定」，系統自動跳過不再抽出\n\n安慰獎的庫存通常設為很大的數字（如 99999），因為不需限量`,
+          },
+          {
+            title: '💡 安慰獎 vs 正式獎品',
+            content: `• 勾選「安慰獎」的獎項不會顯示在前台獎品展示區\n• 安慰獎的庫存不會被消耗（等同無限量供應）\n• 建議至少設定一個安慰獎或「未中獎」項目\n• 「中獎需填個資」可依獎品個別設定，例如小禮物可以免填`,
+          },
+        ]}
+      />
 
       {/* ── Create Form with Preview ── */}
       {showForm && (

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { getWinners, updateWinnerStatus, updateWinnerInfo, deleteWinner } from '@/lib/actions';
 import { Download, CheckCircle, Truck, Clock, Edit2, Save, X, Trash2 } from 'lucide-react';
+import AdminGuide from '@/components/admin/AdminGuide';
 
 type Winner = Awaited<ReturnType<typeof getWinners>>[0];
 
@@ -58,6 +59,24 @@ export default function WinnersPage() {
         <h1>👑 中獎者管理</h1>
         <button className="btn btn-outline btn-sm"><Download size={16} /> 匯出名單</button>
       </div>
+
+      <AdminGuide
+        title="📖 中獎者管理 — 設定說明"
+        items={[
+          {
+            title: '中獎者狀態流程',
+            content: `每位中獎者會依序經過三個狀態：\n\n⏳ 待確認：剛中獎，等待中獎者填寫個資或管理員核實\n✅ 已確認：個資已確認，準備寄送獎品\n🚚 已寄出：獎品已寄出，派獎完成`,
+          },
+          {
+            title: '💡 操作說明',
+            content: `• 筆型按鈕：編輯中獎者的姓名、電話、地址\n• ✅ 按鈕：將狀態從「待確認」提升為「已確認」\n• 🚚 按鈕：將狀態從「已確認」提升為「已寄出」\n• 垃圾桶按鈕：刪除中獎紀錄（不可復原）\n\n提示：安慰獎中獎者會以半透明顯示，因為不需實際派獎`,
+          },
+          {
+            title: '💡 篩選與匯出',
+            content: `• 上方篩選按鈕可快速查看各狀態的中獎者\n• 「匯出名單」可下載所有中獎者資料（CSV 格式）\n• 建議定期檢查「待確認」的中獎者，及時聯繫派獎`,
+          },
+        ]}
+      />
 
       <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
         {['all', 'pending', 'confirmed', 'shipped'].map(f => (

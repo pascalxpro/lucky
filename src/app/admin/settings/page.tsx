@@ -5,6 +5,7 @@ import { getCampaigns, updateCampaign, getSetting, setSetting, getPrizes, getCam
 import { THEME_PRESETS, IMAGE_DIMENSIONS, themeToCSS, type ThemePreset } from '@/lib/themes';
 import { Save, Palette, Music, FileText, Gamepad2, Image, Type, Check, Ruler, Vote, ChevronDown, ChevronUp, Play, X, Globe, Building2, Trash2, AlertTriangle, RefreshCw, RotateCcw } from 'lucide-react';
 import ImageUploader from '@/components/ImageUploader';
+import AdminGuide from '@/components/admin/AdminGuide';
 import dynamic from 'next/dynamic';
 
 const WheelGame = dynamic(() => import('@/components/games/WheelGame'), { ssr: false });
@@ -171,6 +172,28 @@ export default function SettingsPage() {
           <Save size={16} /> {saved ? '✓ 已儲存' : '儲存所有設定'}
         </button>
       </div>
+
+      <AdminGuide
+        title="📖 系統設定 — 各分頁說明"
+        items={[
+          {
+            title: '佈景主題',
+            content: `• 提供多種主題預設（亮色 / 專業暗色 / 活潑暗色 / 節日暗色）\n• 點擊即可即時預覽效果，儲存後前台自動更新\n• 可自訂字型、標題縮放、內文字級、卡片圓角等細節\n• 「區塊樣式」可對各個版面區域單獨設定文字大小與顏色`,
+          },
+          {
+            title: '💡 網站品牌',
+            content: `• 網站名稱：顯示在瀏覽器分頁標籤（Tab）\n• Favicon：瀏覽器分頁的小圖示，建議 32×32 px 的 PNG/ICO\n• Logo：顯示在前台頁面標題上方\n• 公司名稱：顯示在 Logo 下方及頁尾版權資訊\n• 感謝訊息：投票或遊戲後顯示的自訂謝辭內容`,
+          },
+          {
+            title: '💡 遊戲模式 & 投票規則',
+            content: `遊戲模式：可切換轉盤 / 刮刮樂 / 拉霸，並可即時試玩\n\n投票規則設定：\n• 每人最多投票數：0 = 不限制，其他數字為總投票上限\n• 每 IP 最多投票：0 = 不限制，用於防止同一網路刷票\n• 每次遊戲所需投票數：設定投幾票才觸發一次抽獎遊戲\n\n範例：\n【寬鬆模式】每人 0 + 每 IP 0 + 每 1 票抽一次 = 無限投票，每投就抽\n【標準模式】每人 10 + 每 IP 0 + 每 2 票抽一次 = 最多投 10 票，抽 5 次\n【嚴格模式】每人 3 + 每 IP 5 + 每 1 票抽一次 = 每人最多 3 票 3 次`,
+          },
+          {
+            title: '💡 系統資訊 & 歸零',
+            content: `• 「資料歸零」功能用於測試階段，可清除所有投票、中獎、瀏覽記錄\n• 歸零後獎品庫存會回復到原始數量\n• 歸零操作不可恢復，請在活動正式上線前完成測試\n• 需輸入「確認歸零」四個字才能執行，避免誤觸`,
+          },
+        ]}
+      />
 
       {/* Tab navigation */}
       <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '2rem', borderBottom: '1px solid var(--admin-border)', paddingBottom: '0.75rem' }}>

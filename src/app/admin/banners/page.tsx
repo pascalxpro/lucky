@@ -5,6 +5,7 @@ import { getCampaigns, getBanners, createBanner, updateBanner, deleteBanner, reo
 import { Plus, Trash2, Edit2, Save, X, Eye, Image as ImageIcon, GripVertical } from 'lucide-react';
 import { IMAGE_DIMENSIONS } from '@/lib/themes';
 import ImageUploader from '@/components/ImageUploader';
+import AdminGuide from '@/components/admin/AdminGuide';
 import {
   DndContext, closestCenter, KeyboardSensor, PointerSensor, TouchSensor, useSensor, useSensors,
   type DragEndEvent,
@@ -188,6 +189,24 @@ export default function BannersPage() {
           <Plus size={16} /> 新增 Banner
         </button>
       </div>
+
+      <AdminGuide
+        title="📖 Banner 管理 — 設定說明"
+        items={[
+          {
+            title: 'Banner 說明',
+            content: `Banner 顯示在前台頁面最頂端，是使用者進入活動頁面後最先看到的內容。\n\n• 支援多張 Banner 自動輪播（每 5 秒切換一次）\n• 可設定點擊跳轉連結，導引用戶到指定網頁\n• 建議上傳 2~4 張 Banner 以獲得最佳視覺效果`,
+          },
+          {
+            title: '💡 圖片尺寸建議',
+            content: `• 建議尺寸：1200 × 514 px（比例約 21:9）\n• 支援 JPG、PNG、WebP 格式\n• 檔案大小建議控制在 500KB 以內，系統會自動壓縮\n• 所有 Banner 建議使用相同尺寸以確保輪播效果`,
+          },
+          {
+            title: '💡 排序與管理',
+            content: `• 拖曳左側「≡」圖示可調整 Banner 顯示順序\n• 「快速上傳」可直接上傳圖片建立 Banner（無需填連結）\n• 如需設定跳轉連結，請點擊「⭐ 新增 Banner」進行詳細設定`,
+          },
+        ]}
+      />
 
       {/* ── Create Form with Preview ── */}
       {showForm && (

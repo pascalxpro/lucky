@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { getCampaigns, createCampaign, updateCampaign, deleteCampaign, getSetting, setSetting } from '@/lib/actions';
 import { Plus, Trash2, Power, Edit2, X, Save, Eye, Sparkles, FileText, Info } from 'lucide-react';
+import AdminGuide from '@/components/admin/AdminGuide';
 
 type Campaign = Awaited<ReturnType<typeof getCampaigns>>[0];
 
@@ -121,6 +122,24 @@ export default function CampaignsPage() {
           <Plus size={16} /> 新增活動
         </button>
       </div>
+
+      <AdminGuide
+        title="📖 活動管理 — 設定說明"
+        items={[
+          {
+            title: '活動基本設定',
+            content: `• 活動名稱：顯示在前台頁面最上方的大標題\n• 活動描述：顯示在標題下方的副標題文字\n• 活動說明：顯示在 Banner 與獎品之間的詳細說明區\n\n提示：活動說明支援多行文字，可用於寫活動規則、時間等資訊`,
+          },
+          {
+            title: '💡 遊戲模式選擇',
+            content: `• 🎡 轉盤：經典轉盤抽獎，指針停下位置即為結果\n• 🎫 刮刮樂：刮開銀色區域揭曉結果\n• 🎰 拉霸：三個輪盤旋轉後對齊看結果\n\n三種遊戲的抽獎機率相同，均由後台「獎品管理」的權重設定決定`,
+          },
+          {
+            title: '💡 活動狀態管理',
+            content: `• 點擊電源按鈕可切換活動「進行中 / 已停用」\n• 同一時間可有多個活動，但前台僅顯示「進行中」且最新建立的活動\n• 停用活動不會刪除資料，可隨時重新啟用`,
+          },
+        ]}
+      />
 
       {/* ── Create Form with Preview ── */}
       {showForm && (

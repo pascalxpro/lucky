@@ -5,6 +5,7 @@ import { getCampaigns, getProjects, createProject, updateProject, deleteProject,
 import { Plus, Trash2, GripVertical, Edit2, Save, X, Eye, Image as ImageIcon } from 'lucide-react';
 import { IMAGE_DIMENSIONS } from '@/lib/themes';
 import ImageUploader from '@/components/ImageUploader';
+import AdminGuide from '@/components/admin/AdminGuide';
 import {
   DndContext, closestCenter, KeyboardSensor, PointerSensor, TouchSensor, useSensor, useSensors,
   type DragEndEvent,
@@ -249,6 +250,24 @@ export default function ProjectsPage() {
           <Plus size={16} /> 新增作品
         </button>
       </div>
+
+      <AdminGuide
+        title="📖 作品管理 — 設定說明"
+        items={[
+          {
+            title: '作品基本設定',
+            content: `• 作品名稱：顯示在卡片標題，建議簡潔有力\n• 作品描述：顯示在標題下方，可用一兩句話介紹作品\n• 每個作品支援上傳多張圖片，前台會以輪播方式展示`,
+          },
+          {
+            title: '💡 圖片上傳建議',
+            content: `• 建議尺寸：800 × 600 px（橫向 4:3 比例）\n• 支援 JPG、PNG、WebP、GIF 格式\n• 系統會自動壓縮過大的圖片\n• 第一張圖片會作為卡片封面\n• 圖片可拖曳調整順序，懸停可左移或刪除`,
+          },
+          {
+            title: '💡 排序與投票',
+            content: `• 拖曳左側「≡」圖示可調整作品在前台的顯示順序\n• 全部的投票數據都是即時統計\n• 刪除作品會同時刪除該作品的所有投票記錄`,
+          },
+        ]}
+      />
 
       {/* ── Create Form with Preview ── */}
       {showForm && (
