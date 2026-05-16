@@ -51,13 +51,36 @@ export default function WinnersPage() {
     load();
   };
 
+  const exportCSV = () => {
+    if (winners.length === 0) return alert('尚無中獎者資料可匯出');
+    const statusMap: Record<string, string> = { pending: '待確認', confirmed: '已確認', shipped: '已寄出' };
+    const header = ['獎品名稱', '類型', '姓名', '電話', '地址', '中獎時間', '狀態'];
+    const rows = winners.filter(w => !w.prize.isConsolation).map(w => [
+      w.prize.name,
+      w.prize.isConsolation ? '安慰獎' : '正式獎',
+      w.userName || '',
+      w.phone || '',
+      w.address || '',
+      new Date(w.createdAt).toLocaleString('zh-TW'),
+      statusMap[w.status] || w.status,
+    ]);
+    const csv = '\uFEFF' + [header, ...rows].map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `中獎者名單_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   if (loading) return <p>載入中...</p>;
 
   return (
     <div>
       <div className="admin-header">
         <h1>👑 中獎者管理</h1>
-        <button className="btn btn-outline btn-sm"><Download size={16} /> 匯出名單</button>
+        <button className="btn btn-outline btn-sm" onClick={exportCSV}><Download size={16} /> 匯出名單</button>
       </div>
 
       <AdminGuide
@@ -72,8 +95,8 @@ export default function WinnersPage() {
             content: `• 筆型按鈕：編輯中獎者的姓名、電話、地址\n• ✅ 按鈕：將狀態從「待確認」提升為「已確認」\n• 🚚 按鈕：將狀態從「已確認」提升為「已寄出」\n• 垃圾桶按鈕：刪除中獎紀錄（不可復原）\n\n提示：安慰獎中獎者會以半透明顯示，因為不需實際派獎`,
           },
           {
-            title: '💡 篩選功能',
-            content: `• 上方篩選按鈕可快速查看各狀態的中獎者\n• 建議定期檢查「待確認」的中獎者，及時聯繫派獎`,
+            title: '💡 篩選與匯出',
+            content: `• 上方篩選按鈕可快速查看各狀態的中獎者\n• 「匯出名單」可下載正式獎中獎者資料（CSV 格式，可用 Excel 開啟）\n• 建議定期檢查「待確認」的中獎者，及時聯繫派獎`,
           },
         ]}
       />

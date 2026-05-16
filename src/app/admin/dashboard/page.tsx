@@ -35,11 +35,56 @@ export default function DashboardPage() {
     visitors: stats.dailyVisitorTrend[i]?.count || 0,
   }));
 
+  const exportReport = () => {
+    if (!stats) return;
+    const lines: string[] = [];
+    const addLine = (...cols: (string | number)[]) => lines.push(cols.map(c => `"${String(c).replace(/"/g, '""')}"`).join(','));
+
+    // KPI
+    addLine('===== KPI 摘要 =====');
+    addLine('累計訪客', stats.totalVisitors);
+    addLine('今日訪客', stats.todayVisitors);
+    addLine('累積投票', stats.totalVotes);
+    addLine('投票者數', stats.uniqueDevices);
+    addLine('中獎人數', stats.totalWinners);
+    addLine('實際派獎率', stats.winRate + '%');
+    addLine('');
+
+    // Daily trend
+    addLine('===== 每日趨勢 =====');
+    addLine('日期', '訪客數', '投票數');
+    mergedTrend.forEach(d => addLine(d.date, d.visitors, d.votes));
+    addLine('');
+
+    // Project votes
+    addLine('===== 作品得票 =====');
+    addLine('作品名稱', '得票數', '瀏覽數');
+    stats.projectVotes.forEach(p => addLine(p.name, p.votes, p.views || 0));
+    addLine('');
+
+    // Inventory
+    addLine('===== 獎品庫存 =====');
+    addLine('獎品名稱', '剩餘', '總庫存', '消耗率');
+    stats.prizeInventory.filter(p => !p.isConsolation).forEach(p => {
+      const used = p.totalStock > 0 ? Math.round((1 - p.remaining / p.totalStock) * 100) : 0;
+      addLine(p.name, p.remaining, p.totalStock, used + '%');
+    });
+
+    const csv = '\uFEFF' + lines.join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `戰情報表_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div>
       <div className="admin-header">
         <h1>📊 戰情儀表板</h1>
-        <button className="btn btn-outline btn-sm"><Download size={16} /> 匯出報表</button>
+        <button className="btn btn-outline btn-sm" onClick={exportReport}><Download size={16} /> 匯出報表</button>
       </div>
 
       {/* KPI Cards — Row 1 */}
