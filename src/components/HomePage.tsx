@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { getDeviceId } from '@/lib/fingerprint';
 import { Star, Trophy, ChevronLeft, ChevronRight, Volume2, VolumeX, Sparkles, Info, Calendar, MapPin, Gift, X, ZoomIn } from 'lucide-react';
 import WheelGame from './games/WheelGame';
@@ -275,6 +275,8 @@ export default function HomePage({ campaign, maxVotesPerPerson = 0, campaignDeta
   const [remainingVotes, setRemainingVotes] = useState<number | null>(maxVotesPerPerson > 0 ? maxVotesPerPerson : null);
   const [voteProgress, setVoteProgress] = useState(0); // tracks votes toward next game
   const [showThankYou, setShowThankYou] = useState(false);
+  const [targetPrizeId, setTargetPrizeId] = useState<string | null>(null);
+  const pendingLotteryRef = useRef<LotteryResult | null>(null);
 
   // Initialize vote counts
   useEffect(() => {
@@ -365,7 +367,55 @@ export default function HomePage({ campaign, maxVotesPerPerson = 0, campaignDeta
     }
   }, [campaign.id, votedProjects, voting, remainingVotes, maxVotesPerPerson, voteProgress, votesPerGame]);
 
-  const handleGameComplete = useCallback(async () => {
+  // Called when wheel finishes spinning and lands on the prize
+  const handleGameComplete = useCallback(() => {
+    const pending = pendingLotteryRef.current;
+    if (!pending) return;
+    
+    setGameResult(pending);
+    pendingLotteryRef.current = null;
+    setTargetPrizeId(null);
+    
+    if (pending.isWin) {
+      audioManager.playWin();
+      setShowConfetti(true);
+      setTimeout(() => setShowConfetti(false), 5000);
+    } else {
+      audioManager.playLose();
+    }
+  }, []);
+
+  // Called when user clicks GO on the wheel — calls API and sets target
+  const handleWheelSpinStart = useCallback(async () => {
+    try {
+      const deviceId = getDeviceId();
+      const res = await fetch('/api/lottery', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ campaignId: campaign.id, deviceId }),
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        // Store the result, will be displayed after wheel stops
+        pendingLotteryRef.current = {
+          winnerId: data.winnerId,
+          prizeName: data.prizeName,
+          isWin: data.isWin,
+          isConsolation: data.isConsolation,
+          requireClaimInfo: data.requireClaimInfo ?? true,
+        };
+        // Tell the wheel which prize to land on
+        setTargetPrizeId(data.prizeId || null);
+      }
+    } catch {
+      alert('抽獎失敗，請稍後再試');
+      setShowGame(false);
+    }
+  }, [campaign.id]);
+
+  // Fallback for non-wheel games (scratch, slot) — original behavior
+  const handleNonWheelGameComplete = useCallback(async () => {
     try {
       const deviceId = getDeviceId();
       const res = await fetch('/api/lottery', {
@@ -481,9 +531,9 @@ export default function HomePage({ campaign, maxVotesPerPerson = 0, campaignDeta
       {showGame && !gameResult && (
         <div className="modal-overlay">
           <div style={{ width: '90%', maxWidth: 500 }}>
-            {campaign.gameMode === 'wheel' && <WheelGame prizes={campaign.prizes} onComplete={handleGameComplete} />}
-            {campaign.gameMode === 'scratch' && <ScratchGame onComplete={handleGameComplete} />}
-            {campaign.gameMode === 'slot' && <SlotGame onComplete={handleGameComplete} />}
+            {campaign.gameMode === 'wheel' && <WheelGame prizes={campaign.prizes} onComplete={handleGameComplete} targetPrizeId={targetPrizeId} onSpinStart={handleWheelSpinStart} />}
+            {campaign.gameMode === 'scratch' && <ScratchGame onComplete={handleNonWheelGameComplete} />}
+            {campaign.gameMode === 'slot' && <SlotGame onComplete={handleNonWheelGameComplete} />}
           </div>
         </div>
       )}
