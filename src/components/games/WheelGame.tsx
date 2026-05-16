@@ -53,15 +53,34 @@ export default function WheelGame({ prizes, onComplete }: { prizes: Prize[]; onC
       ctx.lineWidth = 2;
       ctx.stroke();
 
-      // Draw text
+      // Draw text — auto-fit font size to available arc space
       ctx.save();
       ctx.rotate(startAngle + segAngle / 2);
       ctx.textAlign = 'right';
       ctx.fillStyle = 'white';
-      ctx.font = `bold ${Math.min(14, 140 / segments.length)}px "Noto Sans TC", sans-serif`;
       ctx.shadowColor = 'rgba(0,0,0,0.5)';
       ctx.shadowBlur = 4;
-      ctx.fillText(seg.name.length > 6 ? seg.name.slice(0, 6) + '..' : seg.name, radius - 20, 5);
+
+      const maxTextWidth = radius * 0.58; // available width for text (from center button edge to near outer ring)
+      let label = seg.name;
+      let fontSize = Math.min(18, 220 / segments.length);
+
+      // Try to fit the full text, shrink font if needed
+      ctx.font = `bold ${fontSize}px "Noto Sans TC", sans-serif`;
+      let measured = ctx.measureText(label).width;
+      while (measured > maxTextWidth && fontSize > 10) {
+        fontSize -= 1;
+        ctx.font = `bold ${fontSize}px "Noto Sans TC", sans-serif`;
+        measured = ctx.measureText(label).width;
+      }
+      // If still too wide after shrinking, truncate
+      if (measured > maxTextWidth) {
+        while (ctx.measureText(label + '..').width > maxTextWidth && label.length > 1) {
+          label = label.slice(0, -1);
+        }
+        label += '..';
+      }
+      ctx.fillText(label, radius - 14, fontSize * 0.2);
       ctx.restore();
     });
 
@@ -125,7 +144,7 @@ export default function WheelGame({ prizes, onComplete }: { prizes: Prize[]; onC
       </h2>
       <div className="wheel-wrapper">
         <div className="wheel-pointer" />
-        <canvas ref={canvasRef} width={340} height={340} className="wheel-canvas" />
+        <canvas ref={canvasRef} width={420} height={420} className="wheel-canvas" style={{ maxWidth: '90vw', maxHeight: '90vw' }} />
         <button
           className="wheel-center animate-pulse-glow"
           onClick={spin}

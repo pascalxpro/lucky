@@ -260,7 +260,7 @@ img { max-width: 100%; display: block; }
 
 /* ============ Wheel ============ */
 .wheel-wrapper {
-  position: relative; width: 340px; height: 340px;
+  position: relative; width: 420px; height: 420px;
 }
 .wheel-canvas { width: 100%; height: 100%; }
 .wheel-pointer {
@@ -326,7 +326,7 @@ img { max-width: 100%; display: block; }
 .modal-content {
   background: var(--modal-bg);
   border: 1px solid var(--glass-border); border-radius: var(--radius);
-  padding: 2.5rem; max-width: 420px; width: 90%;
+  padding: 2.5rem; max-width: 520px; width: 90%;
   text-align: center; animation: scaleIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   position: relative; overflow: hidden;
 }
@@ -583,7 +583,7 @@ img { max-width: 100%; display: block; }
   .stats-grid { grid-template-columns: repeat(2, 1fr); }
   .admin-sidebar { display: none; }
   .admin-main { margin-left: 0; }
-  .wheel-wrapper { width: 280px; height: 280px; }
+  .wheel-wrapper { width: 340px; height: 340px; }
   .game-title { font-size: 1.5rem; }
   .slot-reel-window { width: 70px; height: 70px; }
   .slot-symbol { width: 70px; height: 70px; font-size: 2rem; }
