@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Riiqi Lucky 操作說明書</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box
+        }
+
+        body {
+            font-family: 'Noto Sans TC', system-ui, sans-serif;
+            background: #0f0b1a;
+            color: #e2e8f0;
+            line-height: 1.7
+        }
+
+        .cover {
+            min-height: 60vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            background: linear-gradient(180deg, #1a0e2e, #0f0b1a);
+            padding: 3rem 1.5rem;
+            position: relative;
+            overflow: hidden
+        }
+
+        .cover::before {
+            content: '';
+            position: absolute;
+            top: -80px;
+            width: 400px;
+            height: 400px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(124, 58, 237, .25), transparent 70%);
+            filter: blur(60px)
+        }
+
+        .cover h1 {
+            font-size: 2.8rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: .5rem;
+            position: relative
+        }
+
+        .cover .sub {
+            font-size: 1.1rem;
+            color: #94a3b8;
+            margin-bottom: 2rem;
+            position: relative
+        }
+
+        .cover .ver {
+            background: rgba(124, 58, 237, .2);
+            color: #a78bfa;
+            padding: .3rem 1rem;
+            border-radius: 99px;
+            font-size: .8rem;
+            font-weight: 600;
+            position: relative
+        }
+
+        .wrap {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem
+        }
+
+        .toc {
+            background: rgba(255, 255, 255, .04);
+            border: 1px solid rgba(255, 255, 255, .1);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 3rem
+        }
+
+        .toc h2 {
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            color: #a78bfa
+        }
+
+        .toc ol {
+            padding-left: 1.5rem
+        }
+
+        .toc li {
+            margin: .4rem 0
+        }
+
+        .toc a {
+            color: #94a3b8;
+            text-decoration: none;
+            transition: color .2s
+        }
+
+        .toc a:hover {
+            color: #a78bfa
+        }
+
+        h2 {
+            font-size: 1.6rem;
+            font-weight: 800;
+            margin: 3rem 0 1.5rem;
+            padding-bottom: .75rem;
+            border-bottom: 2px solid rgba(124, 58, 237, .3);
+            background: linear-gradient(135deg, #a78bfa, #f59e0b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent
+        }
+
+        h3 {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #e2e8f0;
+            margin: 1.5rem 0 .75rem;
+            padding-left: .75rem;
+            border-left: 3px solid #7c3aed
+        }
+
+        .card {
+            background: rgba(255, 255, 255, .04);
+            border: 1px solid rgba(255, 255, 255, .1);
+            border-radius: 12px;
+            padding: 1.25rem;
+            margin: .75rem 0
+        }
+
+        .card:hover {
+            border-color: rgba(124, 58, 237, .3);
+            box-shadow: 0 0 20px rgba(124, 58, 237, .1)
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            font-size: .9rem
+        }
+
+        th {
+            background: rgba(124, 58, 237, .15);
+            color: #a78bfa;
+            text-align: left;
+            padding: .7rem .8rem;
+            font-weight: 600;
+            font-size: .8rem;
+            text-transform: uppercase;
+            letter-spacing: .03em
+        }
+
+        td {
+            padding: .65rem .8rem;
+            border-bottom: 1px solid rgba(255, 255, 255, .06);
+            color: #cbd5e1
+        }
+
+        tr:hover td {
+            background: rgba(124, 58, 237, .04)
+        }
+
+        .tip {
+            background: rgba(59, 130, 246, .08);
+            border: 1px solid rgba(59, 130, 246, .2);
+            border-radius: 10px;
+            padding: .8rem 1rem;
+            margin: .75rem 0;
+            font-size: .85rem;
+            color: #93c5fd
+        }
+
+        .tip::before {
+            content: '💡 ';
+            font-size: 1rem
+        }
+
+        .warn {
+            background: rgba(245, 158, 11, .08);
+            border: 1px solid rgba(245, 158, 11, .2);
+            border-radius: 10px;
+            padding: .8rem 1rem;
+            margin: .75rem 0;
+            font-size: .85rem;
+            color: #fbbf24
+        }
+
+        .warn::before {
+            content: '⚠️ ';
+            font-size: 1rem
+        }
+
+        .step {
+            counter-increment: s;
+            position: relative;
+            padding-left: 2.5rem;
+            margin: 1rem 0
+        }
+
+        .step::before {
+            content: counter(s);
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #7c3aed, #ec4899);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: .8rem;
+            font-weight: 700
+        }
+
+        .steps {
+            counter-reset: s
+        }
+
+        code {
+            background: rgba(124, 58, 237, .15);
+            color: #c4b5fd;
+            padding: .15rem .4rem;
+            border-radius: 4px;
+            font-size: .85rem;
+            font-family: 'Consolas', monospace
+        }
+
+        .badge {
+            display: inline-block;
+            padding: .2rem .6rem;
+            border-radius: 99px;
+            font-size: .75rem;
+            font-weight: 600
+        }
+
+        .badge-purple {
+            background: rgba(124, 58, 237, .2);
+            color: #a78bfa
+        }
+
+        .badge-gold {
+            background: rgba(245, 158, 11, .2);
+            color: #fbbf24
+        }
+
+        .badge-green {
+            background: rgba(16, 185, 129, .2);
+            color: #34d399
+        }
+
+        .footer {
+            text-align: center;
+            padding: 3rem 1.5rem;
+            color: #64748b;
+            font-size: .8rem;
+            border-top: 1px solid rgba(255, 255, 255, .06);
+            margin-top: 3rem
+        }
+
+        @media(max-width:640px) {
+            .cover h1 {
+                font-size: 2rem
+            }
+
+            h2 {
+                font-size: 1.3rem
+            }
+
+            table {
+                font-size: .8rem
+            }
+
+            th,
+            td {
+                padding: .5rem
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="cover">
+        <h1>🎰 Riiqi Lucky</h1>
+        <div class="sub">互動式投票暨動態抽獎系統 — 操作說明書</div>
+        <div class="ver">v1.0.0 ｜ 2026-05-14</div>
+    </div>
+
+    <div class="wrap">
+
+        <div class="toc">
+            <h2>📋 目錄</h2>
+            <ol>
+                <li><a href="#overview">系統概述</a></li>
+                <li><a href="#login">登入後台</a></li>
+                <li><a href="#dashboard">戰情儀表板</a></li>
+                <li><a href="#campaign">活動管理</a></li>
+                <li><a href="#project">作品管理</a></li>
+                <li><a href="#prize">獎品與機率設定</a></li>
+                <li><a href="#banner">Banner 輪播管理</a></li>
+                <li><a href="#winner">中獎者管理</a></li>
+                <li><a href="#settings">系統設定</a></li>
+                <li><a href="#anticheat">防灌票機制</a></li>
+                <li><a href="#deploy">部署與維運</a></li>
+                <li><a href="#faq">常見問題</a></li>
+            </ol>
+        </div>
+
+        <!-- 1 -->
+        <h2 id="overview">1. 系統概述</h2>
+        <div class="card">
+            <p>Riiqi Lucky 是一套「<strong>投票 + 即時抽獎</strong>」互動平台，適用於票選活動、節慶抽獎、品牌推廣等場景。</p>
+            <p style="margin-top:.75rem"><strong>核心流程：</strong>參與者瀏覽作品 → 投票 → 觸發抽獎遊戲 → 中獎領獎</p>
+        </div>
+
+        <h3>系統架構</h3>
+        <table>
+            <tr>
+                <th>項目</th>
+                <th>技術</th>
+            </tr>
+            <tr>
+                <td>框架</td>
+                <td>Next.js 16 (App Router)</td>
+            </tr>
+            <tr>
+                <td>資料庫</td>
+                <td>SQLite（輕量、免安裝）</td>
+            </tr>
+            <tr>
+                <td>部署</td>
+                <td>Docker 容器化</td>
+            </tr>
+        </table>
+
+        <h3>前台功能</h3>
+        <table>
+            <tr>
+                <th>功能</th>
+                <th>說明</th>
+            </tr>
+            <tr>
+                <td>🖼️ Banner 輪播</td>
+                <td>自動 5 秒切換 + 手動滑動</td>
+            </tr>
+            <tr>
+                <td>🎨 作品展示</td>
+                <td>卡片式展示 + 圖片輪播 + 點擊放大</td>
+            </tr>
+            <tr>
+                <td>🗳️ 投票</td>
+                <td>每人每作品一票，設備指紋辨識</td>
+            </tr>
+            <tr>
+                <td>🎡 抽獎遊戲</td>
+                <td>三種模式：轉盤 / 刮刮樂 / 拉霸</td>
+            </tr>
+            <tr>
+                <td>🏆 中獎領獎</td>
+                <td>填寫姓名、手機、地址（可個別關閉）</td>
+            </tr>
+            <tr>
+                <td>🎵 音效</td>
+                <td>內建合成音效，可靜音</td>
+            </tr>
+        </table>
+
+        <!-- 2 -->
+        <h2 id="login">2. 登入後台</h2>
+        <div class="steps">
+            <div class="step">開啟網址後加上 <code>/admin/dashboard</code> 進入後台</div>
+            <div class="step">輸入帳號 <code>admin</code>，密碼 <code>admin1234</code></div>
+            <div class="step">登入後即可看到左側導覽列</div>
+        </div>
+        <div class="warn">首次使用請盡快更改預設密碼以確保安全。</div>
+
+        <h3>後台頁面一覽</h3>
+        <table>
+            <tr>
+                <th>頁面</th>
+                <th>功能</th>
+            </tr>
+            <tr>
+                <td>📊 戰情儀表板</td>
+                <td>KPI 卡片、訪客/投票趨勢、作品點閱、庫存水位</td>
+            </tr>
+            <tr>
+                <td>🎪 活動管理</td>
+                <td>建立/編輯活動、選擇遊戲模式、啟停控制</td>
+            </tr>
+            <tr>
+                <td>🎨 作品管理</td>
+                <td>新增/編輯投票作品、多圖上傳、排序</td>
+            </tr>
+            <tr>
+                <td>🎁 獎品管理</td>
+                <td>獎品 CRUD、機率權重設定、庫存管理</td>
+            </tr>
+            <tr>
+                <td>🖼️ Banner 管理</td>
+                <td>輪播圖上傳與排序</td>
+            </tr>
+            <tr>
+                <td>🏆 中獎者管理</td>
+                <td>中獎記錄查詢、狀態追蹤、物流管理</td>
+            </tr>
+            <tr>
+                <td>⚙️ 系統設定</td>
+                <td>佈景主題、品牌設定、投票規則、防灌票</td>
+            </tr>
+        </table>
+
+        <!-- 3 -->
+        <h2 id="dashboard">3. 戰情儀表板</h2>
+        <div class="card">
+            <p>儀表板提供活動的即時數據概覽，包含以下區塊：</p>
+        </div>
+
+        <h3>KPI 卡片</h3>
+        <table>
+            <tr>
+                <th>指標</th>
+                <th>說明</th>
+            </tr>
+            <tr>
+                <td>👁️ 累計訪客</td>
+                <td>不重複的設備訪問數（含今日人數）</td>
+            </tr>
+            <tr>
+                <td>🗳️ 累積投票數</td>
+                <td>所有票數總計 + 投票者人數</td>
+            </tr>
+            <tr>
+                <td>🏆 中獎人數</td>
+                <td>實際中獎人數（不含安慰獎）</td>
+            </tr>
+            <tr>
+                <td>📈 實際派獎率</td>
+                <td>中獎次數 ÷ 總抽獎次數</td>
+            </tr>
+        </table>
+
+        <h3>圖表</h3>
+        <table>
+            <tr>
+                <th>圖表</th>
+                <th>說明</th>
+            </tr>
+            <tr>
+                <td>📈 訪客 vs 投票趨勢</td>
+                <td>14 天雙線圖，藍虛線=訪客、紫實線=投票</td>
+            </tr>
+            <tr>
+                <td>🥧 得票分佈圓餅圖</td>
+                <td>各作品得票佔比</td>
+            </tr>
+            <tr>
+                <td>📊 作品點閱長條圖</td>
+                <td>每件作品的瀏覽次數 vs 投票數對比</td>
+            </tr>
+            <tr>
+                <td>📦 庫存水位</td>
+                <td>各獎品剩餘庫存進度條</td>
+            </tr>
+        </table>
+
+        <!-- 4 -->
+        <h2 id="campaign">4. 活動管理</h2>
+        <div class="steps">
+            <div class="step">進入「活動管理」頁面</div>
+            <div class="step">點擊「新增活動」填寫名稱與說明</div>
+            <div class="step">選擇遊戲模式（轉盤/刮刮樂/拉霸）</div>
+            <div class="step">點擊「啟用」讓活動上線（同時僅一個活動可啟用）</div>
+        </div>
+        <div class="tip">啟用新活動時，系統會自動停用其他活動。</div>
+
+        <!-- 5 -->
+        <h2 id="project">5. 作品管理</h2>
+        <div class="steps">
+            <div class="step">進入「作品管理」頁面</div>
+            <div class="step">點擊「新增作品」填寫名稱、描述</div>
+            <div class="step">上傳圖片（支援多張輪播，建議尺寸 <code>800×600 px (4:3)</code>）</div>
+            <div class="step">拖曳調整顯示排序</div>
+        </div>
+        <div class="tip">每件作品支援多張圖片，前台會自動以輪播方式展示。</div>
+
+        <!-- 6 -->
+        <h2 id="prize">6. 獎品與機率設定</h2>
+        <div class="card">
+            <p>抽獎採用<strong>權重式隨機</strong>，不是百分比。系統會自動計算各獎品的實際中獎機率。</p>
+        </div>
+
+        <h3>設定步驟</h3>
+        <div class="steps">
+            <div class="step">進入「獎品管理」頁面</div>
+            <div class="step">新增獎品：填寫名稱、上傳圖片（建議 <code>400×400 px (1:1)</code>）</div>
+            <div class="step">設定庫存總量與機率權重</div>
+            <div class="step">設定是否為「安慰獎」（不扣庫存、不算中獎）</div>
+            <div class="step">設定「中獎後是否需填寫個資」（每個獎品可獨立設定）</div>
+        </div>
+
+        <h3>機率權重範例</h3>
+        <table>
+            <tr>
+                <th>獎品</th>
+                <th>權重</th>
+                <th>實際機率</th>
+                <th>庫存</th>
+            </tr>
+            <tr>
+                <td>iPhone 16 Pro</td>
+                <td>0.5</td>
+                <td>0.5%</td>
+                <td>1</td>
+            </tr>
+            <tr>
+                <td>AirPods Pro</td>
+                <td>2</td>
+                <td>2%</td>
+                <td>3</td>
+            </tr>
+            <tr>
+                <td>星巴克 $500</td>
+                <td>5</td>
+                <td>5%</td>
+                <td>10</td>
+            </tr>
+            <tr>
+                <td>精美禮物</td>
+                <td>15</td>
+                <td>15%</td>
+                <td>50</td>
+            </tr>
+            <tr>
+                <td>折價券</td>
+                <td>27.5</td>
+                <td>27.5%</td>
+                <td>200</td>
+            </tr>
+            <tr>
+                <td>感謝參與 <span class="badge badge-gold">安慰獎</span></td>
+                <td>50</td>
+                <td>50%</td>
+                <td>無限</td>
+            </tr>
+        </table>
+        <div class="tip">權重加總為 100 時，數字即等於百分比。庫存歸零的獎品會自動從抽獎池排除。</div>
+
+        <!-- 7 -->
+        <h2 id="banner">7. Banner 輪播管理</h2>
+        <div class="steps">
+            <div class="step">進入「Banner 管理」頁面</div>
+            <div class="step">上傳輪播圖（建議尺寸 <code>1200×514 px (21:9)</code>）</div>
+            <div class="step">可設定點擊連結 URL</div>
+            <div class="step">拖曳調整播放順序</div>
+        </div>
+
+        <!-- 8 -->
+        <h2 id="winner">8. 中獎者管理</h2>
+        <div class="card">
+            <p>所有中獎記錄都會顯示在此頁面，可依狀態篩選並管理物流。</p>
+        </div>
+
+        <h3>中獎者狀態流程</h3>
+        <table>
+            <tr>
+                <th>狀態</th>
+                <th>說明</th>
+                <th>操作</th>
+            </tr>
+            <tr>
+                <td><span class="badge badge-gold">待確認</span></td>
+                <td>用戶已中獎，等待填寫個資</td>
+                <td>—</td>
+            </tr>
+            <tr>
+                <td><span class="badge badge-purple">已確認</span></td>
+                <td>用戶已填寫個資</td>
+                <td>點擊「標記已寄出」</td>
+            </tr>
+            <tr>
+                <td><span class="badge badge-green">已寄出</span></td>
+                <td>獎品已寄出</td>
+                <td>流程完成</td>
+            </tr>
+        </table>
+
+        <!-- 9 -->
+        <h2 id="settings">9. 系統設定</h2>
+
+        <h3>9.1 佈景主題</h3>
+        <div class="card">
+            <p>提供 <strong>11 套預設主題</strong>，分為三大類：</p>
+            <table>
+                <tr>
+                    <th>類別</th>
+                    <th>主題</th>
+                </tr>
+                <tr>
+                    <td>☀️ 亮色系</td>
+                    <td>暖陽橘韻、清新薄荷</td>
+                </tr>
+                <tr>
+                    <td>💼 專業暗色</td>
+                    <td>商務深藍、典雅灰階</td>
+                </tr>
+                <tr>
+                    <td>🎉 活潑暗色</td>
+                    <td>紫金派對（預設）、電光霓虹、熱帶夕陽</td>
+                </tr>
+                <tr>
+                    <td>🎊 節日主題</td>
+                    <td>農曆新年🧧、聖誕節🎄、情人節💕、萬聖節🎃</td>
+                </tr>
+            </table>
+            <p style="margin-top:.5rem">可微調：標題倍率、內文大小、卡片圓角、自訂 Google Font</p>
+        </div>
+
+        <h3>9.2 網站品牌</h3>
+        <table>
+            <tr>
+                <th>設定</th>
+                <th>說明</th>
+            </tr>
+            <tr>
+                <td>網站名稱</td>
+                <td>瀏覽器分頁標題</td>
+            </tr>
+            <tr>
+                <td>Favicon</td>
+                <td>瀏覽器分頁圖示（建議 64×64 px）</td>
+            </tr>
+            <tr>
+                <td>Logo</td>
+                <td>首頁標題上方 Logo（建議 200×200 px）</td>
+            </tr>
+            <tr>
+                <td>公司名稱</td>
+                <td>顯示在 Logo 下方</td>
+            </tr>
+        </table>
+
+        <h3>9.3 投票規則</h3>
+        <table>
+            <tr>
+                <th>設定</th>
+                <th>說明</th>
+                <th>預設值</th>
+            </tr>
+            <tr>
+                <td>每人投票上限</td>
+                <td>同一設備最多可投幾個作品</td>
+                <td>0（不限）</td>
+            </tr>
+            <tr>
+                <td>同一 IP 上限</td>
+                <td>同 IP 最多可投幾票（防灌票）</td>
+                <td>0（不限）</td>
+            </tr>
+            <tr>
+                <td>每投N票觸發遊戲</td>
+                <td>累積幾票才能玩一次抽獎</td>
+                <td>1</td>
+            </tr>
+        </table>
+
+        <h3>9.4 中獎領獎</h3>
+        <table>
+            <tr>
+                <th>設定</th>
+                <th>說明</th>
+            </tr>
+            <tr>
+                <td>全域開關</td>
+                <td>系統設定 → 遊戲模式 → 中獎領獎設定</td>
+            </tr>
+            <tr>
+                <td>個別獎品設定</td>
+                <td>獎品管理 → 每個獎品可獨立設定是否需要填個資</td>
+            </tr>
+            <tr>
+                <td>感謝詞</td>
+                <td>用戶完成所有投票後顯示的自訂訊息</td>
+            </tr>
+        </table>
+
+        <!-- 10 -->
+        <h2 id="anticheat">10. 防灌票機制</h2>
+        <div class="card">
+            <p>系統提供<strong>三層防護</strong>，有效阻止灌票行為：</p>
+        </div>
+        <table>
+            <tr>
+                <th>層級</th>
+                <th>機制</th>
+                <th>效果</th>
+            </tr>
+            <tr>
+                <td>① 設備指紋</td>
+                <td>基於 Canvas、WebGL、螢幕、CPU 等硬體特徵產生確定性指紋</td>
+                <td>同瀏覽器 + 同設備 = 同一人（含無痕模式）</td>
+            </tr>
+            <tr>
+                <td>② 每人票數上限</td>
+                <td>依設備指紋計算已投票數</td>
+                <td>限制總投票數量</td>
+            </tr>
+            <tr>
+                <td>③ IP 限制</td>
+                <td>同一 IP 投票數上限（後台可設定）</td>
+                <td>防止換瀏覽器/無痕灌票</td>
+            </tr>
+        </table>
+        <div class="tip">建議 IP 上限設為 <strong>10~50</strong>。設太低可能影響同公司/學校多人共用同一 IP 的正常用戶。</div>
+
+        <!-- 11 -->
+        <h2 id="deploy">11. 部署與維運</h2>
+
+        <h3>雙部署架構</h3>
+        <table>
+            <tr>
+                <th>環境</th>
+                <th>網址</th>
+                <th>方式</th>
+            </tr>
+            <tr>
+                <td>Zeabur</td>
+                <td><code>riiqi.kiseki.me</code></td>
+                <td>GitHub push → 自動建置</td>
+            </tr>
+            <tr>
+                <td>NAS Docker</td>
+                <td><code>lucky.kiseki.me</code></td>
+                <td>robocopy 同步 → docker compose build</td>
+            </tr>
+        </table>
+
+        <h3>注意事項</h3>
+        <div class="warn">Zeabur 部署後若未更新，請到 Zeabur 後台執行「Clear cache and redeploy」。</div>
+        <div class="warn">新增資料庫欄位時，務必同步更新 <code>docker-entrypoint.sh</code> 的 migration 語句。</div>
+
+        <!-- 12 -->
+        <h2 id="faq">12. 常見問題</h2>
+
+        <h3>Q：為什麼投票後沒有觸發遊戲？</h3>
+        <div class="card">
+            <p>請檢查「每投 N 票觸發遊戲」的設定。若設為 3，則需投滿 3 票才會觸發一次遊戲。</p>
+        </div>
+
+        <h3>Q：獎品庫存歸零後會怎樣？</h3>
+        <div class="card">
+            <p>該獎品會自動從抽獎池排除，其權重會分配給其他有庫存的獎品。若所有獎品都歸零，則一律返回「感謝參與」。</p>
+        </div>
+
+        <h3>Q：如何更改管理員密碼？</h3>
+        <div class="card">
+            <p>目前需手動更新資料庫中 <code>AdminUser</code> 表的 <code>passwordHash</code> 欄位。</p>
+        </div>
+
+        <h3>Q：500 人同時進入能承受嗎？</h3>
+        <div class="card">
+            <p><strong>瀏覽首頁：</strong>完全沒問題（讀取操作是併發的）。<br>
+                <strong>同時投票+抽獎：</strong>分散在幾分鐘內可承受。若需要瞬間高併發（倒數搶投），建議將資料庫升級為 PostgreSQL。
+            </p>
+        </div>
+
+        <h3>Q：訪客追蹤如何避免灌水？</h3>
+        <div class="card">
+            <p>每個設備每天只記錄一次首頁訪問、一次作品點閱，不會因重新整理而重複計數。</p>
+        </div>
+
+    </div>
+
+    <div class="footer">
+        <p>Riiqi Lucky v1.0.0 ｜ 文件產生日期：2026-05-14</p>
+        <p>© 2026 Riiqi Studio. All rights reserved.</p>
+    </div>
+
+</body>
+
+</html>

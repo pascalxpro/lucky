@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { getCampaigns, updateCampaign, getSetting, setSetting, getPrizes } from '@/lib/actions';
+import { getCampaigns, updateCampaign, getSetting, setSetting, getPrizes, getCampaignDataStats, resetCampaignData } from '@/lib/actions';
 import { THEME_PRESETS, IMAGE_DIMENSIONS, themeToCSS, type ThemePreset } from '@/lib/themes';
-import { Save, Palette, Music, FileText, Gamepad2, Image, Type, Check, Ruler, Vote, ChevronDown, ChevronUp, Play, X, Globe, Building2 } from 'lucide-react';
+import { Save, Palette, Music, FileText, Gamepad2, Image, Type, Check, Ruler, Vote, ChevronDown, ChevronUp, Play, X, Globe, Building2, Trash2, AlertTriangle, RefreshCw, RotateCcw } from 'lucide-react';
 import ImageUploader from '@/components/ImageUploader';
 import dynamic from 'next/dynamic';
 
@@ -63,6 +63,13 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'theme' | 'game' | 'branding' | 'system'>('theme');
   const [realPrizes, setRealPrizes] = useState<{ id: string; name: string }[]>([]);
+  // Reset feature states
+  const [campaignName, setCampaignName] = useState('');
+  const [dataStats, setDataStats] = useState<{ voteCount: number; winnerCount: number; pageViewCount: number; usedStock: number } | null>(null);
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [resetConfirmInput, setResetConfirmInput] = useState('');
+  const [resetting, setResetting] = useState(false);
+  const [resetResult, setResetResult] = useState<{ deletedVotes: number; deletedWinners: number; deletedPageViews: number; restoredPrizes: number } | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -70,6 +77,7 @@ export default function SettingsPage() {
       const active = campaigns.find(c => c.isActive);
       if (active) {
         setCampaignId(active.id);
+        setCampaignName(active.name);
         setGameMode(active.gameMode);
         const themeId = await getSetting(active.id, 'themeId');
         if (themeId) setActiveThemeId(themeId);
@@ -671,17 +679,127 @@ export default function SettingsPage() {
 
       {/* ─── System Tab ─── */}
       {activeTab === 'system' && (
-        <div style={{ display: 'grid', gap: '1.5rem', maxWidth: 600 }}>
+        <div style={{ display: 'grid', gap: '1.5rem', maxWidth: 700 }}>
           <div className="admin-panel">
             <div className="admin-panel-title" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <FileText size={18} /> 系統資訊
             </div>
             <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              <p>版本：v1.0.0</p>
+              <p>版本：v1.1.0</p>
               <p>技術棧：Next.js + Prisma + SQLite</p>
               <p>預設管理帳號：admin / admin1234</p>
               <p>目前佈景：{activeTheme.emoji} {activeTheme.name}</p>
             </div>
+          </div>
+
+          {/* ── Data Reset Panel ── */}
+          <div className="admin-panel" style={{ border: '1px solid rgba(239,68,68,0.3)', background: 'linear-gradient(135deg, rgba(239,68,68,0.04), rgba(249,115,22,0.04))' }}>
+            <div className="admin-panel-title" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#f97316' }}>
+              <RotateCcw size={18} /> 🧹 測試資料管理
+              <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 400, marginLeft: 'auto' }}>測試期間清除資料，方便重複測試</span>
+            </div>
+
+            {/* Description */}
+            <div style={{ padding: '0.75rem 1rem', background: 'rgba(249,115,22,0.08)', borderRadius: 'var(--radius-sm)', marginBottom: '1rem', fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
+              <strong>⚡ 此功能會清除以下資料：</strong><br />
+              ✅ 投票記錄（解除設備指紋限制，可重新投票）<br />
+              ✅ 中獎記錄（清除所有中獎紀錄）<br />
+              ✅ 瀏覽記錄（清除訪客追蹤資料）<br />
+              ✅ 獎品庫存恢復滿額<br />
+              <span style={{ color: 'var(--text-muted)', fontSize: '0.78rem', marginTop: '0.25rem', display: 'inline-block' }}>❌ 不會影響：活動設定、作品資料、獎品設定、Banner、佈景主題</span>
+            </div>
+
+            {/* Data stats */}
+            {dataStats ? (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.75rem', marginBottom: '1.25rem' }}>
+                {[
+                  { label: '投票記錄', value: dataStats.voteCount, icon: '🗳️', color: '#8b5cf6' },
+                  { label: '中獎記錄', value: dataStats.winnerCount, icon: '🏆', color: '#f59e0b' },
+                  { label: '瀏覽記錄', value: dataStats.pageViewCount, icon: '👁️', color: '#3b82f6' },
+                  { label: '已消耗庫存', value: dataStats.usedStock, icon: '📦', color: '#10b981' },
+                ].map(stat => (
+                  <div key={stat.label} style={{ padding: '0.75rem', background: 'rgba(255,255,255,0.03)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--admin-border)', textAlign: 'center' }}>
+                    <div style={{ fontSize: '1.5rem', marginBottom: '0.25rem' }}>{stat.icon}</div>
+                    <div className="font-en" style={{ fontSize: '1.4rem', fontWeight: 800, color: stat.color }}>{stat.value}</div>
+                    <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{stat.label}</div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <button className="btn btn-outline btn-sm" style={{ marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}
+                onClick={async () => { if (campaignId) { const stats = await getCampaignDataStats(campaignId); setDataStats(stats); } }}>
+                <RefreshCw size={14} /> 載入目前資料統計
+              </button>
+            )}
+
+            {/* Reset result */}
+            {resetResult && (
+              <div style={{ padding: '1rem', background: 'rgba(16,185,129,0.1)', borderRadius: 'var(--radius-sm)', border: '1px solid rgba(16,185,129,0.3)', marginBottom: '1.25rem' }}>
+                <div style={{ fontWeight: 700, fontSize: '0.9rem', color: '#10b981', marginBottom: '0.5rem' }}>✅ 資料歸零完成！</div>
+                <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
+                  • 已刪除 <strong>{resetResult.deletedVotes}</strong> 筆投票記錄<br />
+                  • 已刪除 <strong>{resetResult.deletedWinners}</strong> 筆中獎記錄<br />
+                  • 已刪除 <strong>{resetResult.deletedPageViews}</strong> 筆瀏覽記錄<br />
+                  • 已恢復 <strong>{resetResult.restoredPrizes}</strong> 個獎品庫存
+                </div>
+              </div>
+            )}
+
+            {/* Reset button */}
+            {!showResetConfirm ? (
+              <button className="btn btn-sm" onClick={() => { setShowResetConfirm(true); setResetConfirmInput(''); setResetResult(null); }}
+                style={{ background: 'linear-gradient(135deg, #ef4444, #f97316)', color: '#fff', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 700 }}>
+                <Trash2 size={16} /> 資料歸零
+              </button>
+            ) : (
+              <div style={{ padding: '1.25rem', background: 'rgba(239,68,68,0.08)', borderRadius: 'var(--radius-sm)', border: '1px solid rgba(239,68,68,0.3)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem', color: '#ef4444', fontWeight: 700, fontSize: '0.9rem' }}>
+                  <AlertTriangle size={18} /> 確認資料歸零
+                </div>
+                <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginBottom: '0.75rem', lineHeight: 1.5 }}>
+                  此操作<strong>無法復原</strong>。請輸入活動名稱 <strong style={{ color: '#f97316' }}>「{campaignName}」</strong> 以確認執行。
+                </p>
+                <input
+                  value={resetConfirmInput}
+                  onChange={e => setResetConfirmInput(e.target.value)}
+                  placeholder={`請輸入：${campaignName}`}
+                  style={{ width: '100%', marginBottom: '0.75rem' }}
+                  autoFocus
+                />
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <button className="btn btn-sm"
+                    disabled={resetConfirmInput !== campaignName || resetting}
+                    onClick={async () => {
+                      if (resetConfirmInput !== campaignName || !campaignId) return;
+                      setResetting(true);
+                      try {
+                        const result = await resetCampaignData(campaignId);
+                        setResetResult(result);
+                        setShowResetConfirm(false);
+                        setResetConfirmInput('');
+                        // Refresh stats
+                        const stats = await getCampaignDataStats(campaignId);
+                        setDataStats(stats);
+                      } catch (err) {
+                        alert('歸零失敗：' + (err instanceof Error ? err.message : '未知錯誤'));
+                      } finally {
+                        setResetting(false);
+                      }
+                    }}
+                    style={{
+                      background: resetConfirmInput === campaignName ? 'linear-gradient(135deg, #ef4444, #dc2626)' : 'rgba(239,68,68,0.2)',
+                      color: '#fff', display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 700,
+                      opacity: resetConfirmInput === campaignName && !resetting ? 1 : 0.5,
+                      cursor: resetConfirmInput === campaignName && !resetting ? 'pointer' : 'not-allowed',
+                    }}>
+                    {resetting ? <><RefreshCw size={14} style={{ animation: 'spin 1s linear infinite' }} /> 執行中...</> : <><Trash2 size={14} /> 確認歸零</>}
+                  </button>
+                  <button className="btn btn-outline btn-sm" onClick={() => { setShowResetConfirm(false); setResetConfirmInput(''); }}>
+                    取消
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

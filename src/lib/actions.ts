@@ -268,6 +268,63 @@ export async function getDashboardStats(campaignId: string) {
   };
 }
 
+// ============ Campaign Data Reset (Testing) ============
+
+export async function getCampaignDataStats(campaignId: string) {
+  const [voteCount, winnerCount, pageViewCount, prizes] = await Promise.all([
+    prisma.vote.count({ where: { campaignId } }),
+    prisma.winner.count({ where: { campaignId } }),
+    prisma.pageView.count({ where: { campaignId } }),
+    prisma.prize.findMany({
+      where: { campaignId },
+      select: { id: true, name: true, totalStock: true, remaining: true },
+    }),
+  ]);
+
+  const usedStock = prizes.reduce((sum, p) => sum + (p.totalStock - p.remaining), 0);
+
+  return { voteCount, winnerCount, pageViewCount, usedStock, prizes };
+}
+
+export async function resetCampaignData(campaignId: string) {
+  const result = await prisma.$transaction(async (tx) => {
+    // 1. Count before delete (for reporting)
+    const [voteCount, winnerCount, pageViewCount] = await Promise.all([
+      tx.vote.count({ where: { campaignId } }),
+      tx.winner.count({ where: { campaignId } }),
+      tx.pageView.count({ where: { campaignId } }),
+    ]);
+
+    // 2. Delete all votes, winners, pageViews
+    await Promise.all([
+      tx.vote.deleteMany({ where: { campaignId } }),
+      tx.winner.deleteMany({ where: { campaignId } }),
+      tx.pageView.deleteMany({ where: { campaignId } }),
+    ]);
+
+    // 3. Reset prize stock: remaining = totalStock
+    const prizes = await tx.prize.findMany({
+      where: { campaignId },
+      select: { id: true, totalStock: true },
+    });
+    for (const prize of prizes) {
+      await tx.prize.update({
+        where: { id: prize.id },
+        data: { remaining: prize.totalStock },
+      });
+    }
+
+    return {
+      deletedVotes: voteCount,
+      deletedWinners: winnerCount,
+      deletedPageViews: pageViewCount,
+      restoredPrizes: prizes.length,
+    };
+  });
+
+  return result;
+}
+
 // ============ Auth ============
 
 export async function verifyAdmin(username: string, password: string) {
