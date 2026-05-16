@@ -277,6 +277,9 @@ export default function HomePage({ campaign, maxVotesPerPerson = 0, campaignDeta
   const [showThankYou, setShowThankYou] = useState(false);
   const [targetPrizeId, setTargetPrizeId] = useState<string | null>(null);
   const [detailsExpanded, setDetailsExpanded] = useState(false);
+  const [hasReadDetails, setHasReadDetails] = useState(!campaignDetails); // no details = auto-pass
+  const [showReadPrompt, setShowReadPrompt] = useState(false);
+  const detailsRef = useRef<HTMLDivElement>(null);
   const pendingLotteryRef = useRef<LotteryResult | null>(null);
 
   // Initialize vote counts
@@ -320,6 +323,11 @@ export default function HomePage({ campaign, maxVotesPerPerson = 0, campaignDeta
 
   const handleVote = useCallback(async (projectId: string) => {
     if (votedProjects.has(projectId) || voting) return;
+    // Must read campaign details first
+    if (!hasReadDetails) {
+      setShowReadPrompt(true);
+      return;
+    }
     // Check client-side limit
     if (remainingVotes !== null && remainingVotes <= 0) {
       alert(`您已達到投票上限（${maxVotesPerPerson} 票）`);
@@ -366,7 +374,7 @@ export default function HomePage({ campaign, maxVotesPerPerson = 0, campaignDeta
     } finally {
       setVoting(null);
     }
-  }, [campaign.id, votedProjects, voting, remainingVotes, maxVotesPerPerson, voteProgress, votesPerGame]);
+  }, [campaign.id, votedProjects, voting, remainingVotes, maxVotesPerPerson, voteProgress, votesPerGame, hasReadDetails]);
 
   // Called when wheel finishes spinning and lands on the prize
   const handleGameComplete = useCallback(() => {
@@ -533,6 +541,36 @@ export default function HomePage({ campaign, maxVotesPerPerson = 0, campaignDeta
         </div>
       )}
 
+      {/* Read Details Prompt Modal */}
+      {showReadPrompt && (
+        <div className="modal-overlay">
+          <div className="modal-content" style={{ textAlign: 'center', maxWidth: 420 }}>
+            <div style={{ fontSize: '3.5rem', marginBottom: '0.75rem' }}>📋</div>
+            <h2 style={{ fontSize: '1.3rem', fontWeight: 800, marginBottom: '0.75rem' }}>
+              <span className="text-gradient">請先閱覽活動說明</span>
+            </h2>
+            <p style={{ color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: '1rem', fontSize: '0.92rem' }}>
+              投票前請先展開並閱讀完整的活動說明，<br />瞭解活動規則與注意事項後即可開始投票。
+            </p>
+            <div style={{ display: 'flex', gap: '0.75rem' }}>
+              <button className="btn btn-outline btn-lg" onClick={() => setShowReadPrompt(false)} style={{ flex: 1 }}>
+                我知道了
+              </button>
+              <button className="btn btn-gold btn-lg" onClick={() => {
+                setShowReadPrompt(false);
+                setDetailsExpanded(true);
+                setHasReadDetails(true);
+                setTimeout(() => {
+                  detailsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 100);
+              }} style={{ flex: 1 }}>
+                📖 前往閱覽
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Game Modal */}
       {showGame && !gameResult && (
         <div className="modal-overlay">
@@ -633,14 +671,20 @@ export default function HomePage({ campaign, maxVotesPerPerson = 0, campaignDeta
         {/* Campaign Details Section — Collapsible */}
         {campaignDetails && (() => {
           const lines = campaignDetails.split('\n');
-          const needsCollapse = lines.length > 3;
+          const needsCollapse = lines.length > 6;
+
+          const handleExpand = () => {
+            setDetailsExpanded(true);
+            setHasReadDetails(true);
+          };
 
           return (
-            <div style={{ marginBottom: '2.5rem' }} className="animate-slide-up">
+            <div ref={detailsRef} style={{ marginBottom: '2.5rem' }} className="animate-slide-up">
               <div className="glass-card" style={{
                 padding: '1.5rem 2rem',
-                borderLeft: '4px solid var(--info)',
+                borderLeft: `4px solid ${hasReadDetails ? 'var(--success, #10b981)' : 'var(--info)'}`,
                 position: 'relative', overflow: 'hidden',
+                transition: 'border-color 0.3s ease',
               }}>
                 {/* Subtle background decoration */}
                 <div style={{
@@ -649,7 +693,14 @@ export default function HomePage({ campaign, maxVotesPerPerson = 0, campaignDeta
                   background: 'rgba(59,130,246,0.05)',
                 }} />
                 <h2
-                  onClick={() => needsCollapse && setDetailsExpanded(!detailsExpanded)}
+                  onClick={() => {
+                    if (needsCollapse) {
+                      if (!detailsExpanded) handleExpand();
+                      else setDetailsExpanded(false);
+                    } else {
+                      setHasReadDetails(true);
+                    }
+                  }}
                   style={{
                     fontSize: 'var(--details-title-size, 1.1rem)', fontWeight: 700,
                     marginBottom: '1rem', color: 'var(--details-title-color, inherit)',
@@ -664,10 +715,26 @@ export default function HomePage({ campaign, maxVotesPerPerson = 0, campaignDeta
                   {needsCollapse && (
                     <span style={{
                       marginLeft: 'auto', fontSize: '0.75rem',
-                      color: 'var(--info)', fontWeight: 500,
+                      color: hasReadDetails ? 'var(--success, #10b981)' : 'var(--info)', fontWeight: 500,
                       display: 'flex', alignItems: 'center', gap: '0.3rem',
                     }}>
-                      {detailsExpanded ? '收合 ▲' : '展開完整說明 ▼'}
+                      {detailsExpanded ? '收合 ▲' : (hasReadDetails ? '✔ 已閱覽（點擊展開）' : '展開完整說明 ▼')}
+                    </span>
+                  )}
+                  {!needsCollapse && !hasReadDetails && (
+                    <span style={{
+                      marginLeft: 'auto', fontSize: '0.75rem',
+                      color: 'var(--accent)', fontWeight: 500,
+                    }}>
+                      ← 請先閱覽
+                    </span>
+                  )}
+                  {!needsCollapse && hasReadDetails && (
+                    <span style={{
+                      marginLeft: 'auto', fontSize: '0.75rem',
+                      color: 'var(--success, #10b981)', fontWeight: 500,
+                    }}>
+                      ✔ 已閱覽
                     </span>
                   )}
                 </h2>
@@ -677,7 +744,7 @@ export default function HomePage({ campaign, maxVotesPerPerson = 0, campaignDeta
                     color: 'var(--details-body-color, var(--text-secondary))',
                     fontFamily: 'var(--details-font, inherit)',
                     whiteSpace: 'pre-wrap',
-                    maxHeight: !detailsExpanded && needsCollapse ? '5.4em' : '2000px',
+                    maxHeight: !detailsExpanded && needsCollapse ? '10.8em' : '2000px',
                     overflow: 'hidden',
                     transition: 'max-height 0.4s ease',
                   }}>
@@ -686,7 +753,7 @@ export default function HomePage({ campaign, maxVotesPerPerson = 0, campaignDeta
                   {/* Gradient fade mask when collapsed */}
                   {!detailsExpanded && needsCollapse && (
                     <div
-                      onClick={() => setDetailsExpanded(true)}
+                      onClick={handleExpand}
                       style={{
                         position: 'absolute', bottom: 0, left: 0, right: 0,
                         height: '3em',
