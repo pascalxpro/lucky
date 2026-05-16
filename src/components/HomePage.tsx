@@ -276,6 +276,7 @@ export default function HomePage({ campaign, maxVotesPerPerson = 0, campaignDeta
   const [voteProgress, setVoteProgress] = useState(0); // tracks votes toward next game
   const [showThankYou, setShowThankYou] = useState(false);
   const [targetPrizeId, setTargetPrizeId] = useState<string | null>(null);
+  const [detailsExpanded, setDetailsExpanded] = useState(false);
   const pendingLotteryRef = useRef<LotteryResult | null>(null);
 
   // Initialize vote counts
@@ -629,40 +630,85 @@ export default function HomePage({ campaign, maxVotesPerPerson = 0, campaignDeta
           </div>
         )}
 
-        {/* Campaign Details Section */}
-        {campaignDetails && (
-          <div style={{ marginBottom: '2.5rem' }} className="animate-slide-up">
-            <div className="glass-card" style={{
-              padding: '1.5rem 2rem',
-              borderLeft: '4px solid var(--info)',
-              position: 'relative', overflow: 'hidden',
-            }}>
-              {/* Subtle background decoration */}
-              <div style={{
-                position: 'absolute', top: -20, right: -20,
-                width: 100, height: 100, borderRadius: '50%',
-                background: 'rgba(59,130,246,0.05)',
-              }} />
-              <h2 style={{
-                fontSize: 'var(--details-title-size, 1.1rem)', fontWeight: 700,
-                marginBottom: '1rem', color: 'var(--details-title-color, inherit)',
-                fontFamily: 'var(--details-font, var(--font-heading))',
-                display: 'flex', alignItems: 'center', gap: '0.5rem',
+        {/* Campaign Details Section — Collapsible */}
+        {campaignDetails && (() => {
+          const lines = campaignDetails.split('\n');
+          const needsCollapse = lines.length > 3;
+
+          return (
+            <div style={{ marginBottom: '2.5rem' }} className="animate-slide-up">
+              <div className="glass-card" style={{
+                padding: '1.5rem 2rem',
+                borderLeft: '4px solid var(--info)',
+                position: 'relative', overflow: 'hidden',
               }}>
-                <Info size={20} style={{ color: 'var(--info)' }} />
-                活動說明
-              </h2>
-              <div style={{
-                fontSize: 'var(--details-body-size, 0.92rem)', lineHeight: 1.8,
-                color: 'var(--details-body-color, var(--text-secondary))',
-                fontFamily: 'var(--details-font, inherit)',
-                whiteSpace: 'pre-wrap',
-              }}>
-                {campaignDetails}
+                {/* Subtle background decoration */}
+                <div style={{
+                  position: 'absolute', top: -20, right: -20,
+                  width: 100, height: 100, borderRadius: '50%',
+                  background: 'rgba(59,130,246,0.05)',
+                }} />
+                <h2
+                  onClick={() => needsCollapse && setDetailsExpanded(!detailsExpanded)}
+                  style={{
+                    fontSize: 'var(--details-title-size, 1.1rem)', fontWeight: 700,
+                    marginBottom: '1rem', color: 'var(--details-title-color, inherit)',
+                    fontFamily: 'var(--details-font, var(--font-heading))',
+                    display: 'flex', alignItems: 'center', gap: '0.5rem',
+                    cursor: needsCollapse ? 'pointer' : 'default',
+                    userSelect: 'none',
+                  }}
+                >
+                  <Info size={20} style={{ color: 'var(--info)' }} />
+                  活動說明
+                  {needsCollapse && (
+                    <span style={{
+                      marginLeft: 'auto', fontSize: '0.75rem',
+                      color: 'var(--info)', fontWeight: 500,
+                      display: 'flex', alignItems: 'center', gap: '0.3rem',
+                    }}>
+                      {detailsExpanded ? '收合 ▲' : '展開完整說明 ▼'}
+                    </span>
+                  )}
+                </h2>
+                <div style={{ position: 'relative' }}>
+                  <div style={{
+                    fontSize: 'var(--details-body-size, 0.92rem)', lineHeight: 1.8,
+                    color: 'var(--details-body-color, var(--text-secondary))',
+                    fontFamily: 'var(--details-font, inherit)',
+                    whiteSpace: 'pre-wrap',
+                    maxHeight: !detailsExpanded && needsCollapse ? '5.4em' : '2000px',
+                    overflow: 'hidden',
+                    transition: 'max-height 0.4s ease',
+                  }}>
+                    {campaignDetails}
+                  </div>
+                  {/* Gradient fade mask when collapsed */}
+                  {!detailsExpanded && needsCollapse && (
+                    <div
+                      onClick={() => setDetailsExpanded(true)}
+                      style={{
+                        position: 'absolute', bottom: 0, left: 0, right: 0,
+                        height: '3em',
+                        background: 'linear-gradient(transparent, var(--bg-dark, #0f0b1a))',
+                        cursor: 'pointer',
+                        display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
+                        paddingBottom: '0.3rem',
+                      }}
+                    >
+                      <span style={{
+                        fontSize: '0.8rem', color: 'var(--info)',
+                        fontWeight: 600, letterSpacing: '0.05em',
+                      }}>
+                        ⋯ 點擊展開完整說明
+                      </span>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
 
         {/* Prize Showcase */}
         {campaign.prizes.filter(p => !p.isConsolation).length > 0 && (
