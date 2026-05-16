@@ -447,7 +447,12 @@ export default function HomePage({ campaign, maxVotesPerPerson = 0, campaignDeta
     }
   }, [campaign.id]);
 
+  const [claimData, setClaimData] = useState<{ winnerId: string; prizeName: string } | null>(null);
+
   const handleClaimPrize = () => {
+    if (gameResult) {
+      setClaimData({ winnerId: gameResult.winnerId, prizeName: gameResult.prizeName });
+    }
     setShowClaim(true);
     setGameResult(null);
     setShowGame(false);
@@ -463,8 +468,8 @@ export default function HomePage({ campaign, maxVotesPerPerson = 0, campaignDeta
     setShowThankYou(false);
   };
 
-  if (showClaim && gameResult) {
-    return <ClaimForm winnerId={gameResult.winnerId} prizeName={gameResult.prizeName} onBack={() => setShowClaim(false)} />;
+  if (showClaim && claimData) {
+    return <ClaimForm winnerId={claimData.winnerId} prizeName={claimData.prizeName} onBack={() => { setShowClaim(false); setClaimData(null); }} />;
   }
 
   return (
