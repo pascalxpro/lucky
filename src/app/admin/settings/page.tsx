@@ -780,7 +780,11 @@ export default function SettingsPage() {
                   <AlertTriangle size={18} /> 確認資料歸零
                 </div>
                 <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginBottom: '0.75rem', lineHeight: 1.5 }}>
-                  此操作<strong>無法復原</strong>。請輸入活動名稱 <strong style={{ color: '#f97316' }}>「{campaignName}」</strong> 以確認執行。
+                  此操作<strong>無法復原</strong>。請輸入活動名稱 <strong
+                    style={{ color: '#f97316', cursor: 'pointer', textDecoration: 'underline', textDecorationStyle: 'dotted', textUnderlineOffset: '3px' }}
+                    title="點擊自動填入"
+                    onClick={() => setResetConfirmInput(campaignName)}
+                  >「{campaignName}」</strong> 以確認執行。
                 </p>
                 <input
                   value={resetConfirmInput}
