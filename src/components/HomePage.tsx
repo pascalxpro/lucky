@@ -493,7 +493,11 @@ export default function HomePage({ campaign, maxVotesPerPerson = 0, campaignDeta
       {/* Sound toggle */}
       <button
         onClick={() => setMuted(audioManager.toggleMute())}
-        style={{ position: 'fixed', top: '1rem', right: '1rem', zIndex: 100, background: 'var(--glass)', borderRadius: '50%', width: 44, height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--glass-border)' }}
+        aria-label={muted ? '開啟音效' : '關閉音效'}
+        title={muted ? '開啟音效' : '關閉音效'}
+        style={{ position: 'fixed', top: '1rem', right: '1rem', zIndex: 100, background: 'var(--glass)', borderRadius: '50%', width: 44, height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--glass-border)', transition: 'transform 0.15s ease, box-shadow 0.15s ease', cursor: 'pointer' }}
+        onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.1)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.2)'; }}
+        onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = 'none'; }}
       >
         {muted ? <VolumeX size={20} /> : <Volume2 size={20} />}
       </button>
@@ -651,11 +655,17 @@ export default function HomePage({ campaign, maxVotesPerPerson = 0, campaignDeta
             {campaign.banners.length > 1 && (
               <>
                 <button onClick={() => setBannerIndex(i => (i - 1 + campaign.banners.length) % campaign.banners.length)}
-                  style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', width: 40, height: 40, borderRadius: '50%', background: 'var(--glass)', border: '1px solid var(--glass-border)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  aria-label="上一張 Banner"
+                  style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', width: 40, height: 40, borderRadius: '50%', background: 'var(--glass)', border: '1px solid var(--glass-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'transform 0.15s ease, background 0.15s ease, box-shadow 0.15s ease', backdropFilter: 'blur(8px)' }}
+                  onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-50%) scale(1.15)'; e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.3)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(-50%) scale(1)'; e.currentTarget.style.boxShadow = 'none'; }}>
                   <ChevronLeft size={20} />
                 </button>
                 <button onClick={() => setBannerIndex(i => (i + 1) % campaign.banners.length)}
-                  style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', width: 40, height: 40, borderRadius: '50%', background: 'var(--glass)', border: '1px solid var(--glass-border)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  aria-label="下一張 Banner"
+                  style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', width: 40, height: 40, borderRadius: '50%', background: 'var(--glass)', border: '1px solid var(--glass-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'transform 0.15s ease, background 0.15s ease, box-shadow 0.15s ease', backdropFilter: 'blur(8px)' }}
+                  onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-50%) scale(1.15)'; e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.3)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(-50%) scale(1)'; e.currentTarget.style.boxShadow = 'none'; }}>
                   <ChevronRight size={20} />
                 </button>
                 <div className="banner-dots">
@@ -876,7 +886,7 @@ export default function HomePage({ campaign, maxVotesPerPerson = 0, campaignDeta
             </div>
           )}
           {/* Game progress indicator (when votesPerGame > 1) */}
-          {votesPerGame > 1 && (
+          {votesPerGame > 1 && !(remainingVotes !== null && remainingVotes <= 0 && voteProgress < votesPerGame) && (
             <div style={{
               marginTop: '0.75rem',
               padding: '0.75rem 1rem', borderRadius: 'var(--radius)',
@@ -931,7 +941,7 @@ export default function HomePage({ campaign, maxVotesPerPerson = 0, campaignDeta
                   <h3 className="project-card-title">{project.name}</h3>
                   <p className="project-card-desc">{project.description}</p>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <div>
+                    <div style={{ marginRight: '0.5rem' }}>
                       <span className="vote-count">{voteCounts[project.id] ?? project._count.votes}</span>
                       <span className="vote-label">票</span>
                     </div>
