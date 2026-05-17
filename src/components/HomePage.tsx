@@ -381,18 +381,24 @@ export default function HomePage({ campaign, maxVotesPerPerson = 0, campaignDeta
     const pending = pendingLotteryRef.current;
     if (!pending) return;
     
-    setGameResult(pending);
     pendingLotteryRef.current = null;
     setTargetPrizeId(null);
     
     if (pending.isWin) {
+      setGameResult(pending);
       audioManager.playWin();
       setShowConfetti(true);
       setTimeout(() => setShowConfetti(false), 5000);
+    } else if (remainingVotes !== null && remainingVotes <= 0) {
+      // 票用完且未中獎，跳過 GameResult 直接顯示 ThankYou
+      audioManager.playLose();
+      setShowGame(false);
+      setShowThankYou(true);
     } else {
+      setGameResult(pending);
       audioManager.playLose();
     }
-  }, []);
+  }, [remainingVotes]);
 
   // Called when user clicks GO on the wheel — calls API and sets target
   const handleWheelSpinStart = useCallback(async () => {
@@ -435,18 +441,25 @@ export default function HomePage({ campaign, maxVotesPerPerson = 0, campaignDeta
       const data = await res.json();
 
       if (data.success) {
-        setGameResult({
+        const result = {
           winnerId: data.winnerId,
           prizeName: data.prizeName,
           isWin: data.isWin,
           isConsolation: data.isConsolation,
           requireClaimInfo: data.requireClaimInfo ?? true,
-        });
+        };
         if (data.isWin) {
+          setGameResult(result);
           audioManager.playWin();
           setShowConfetti(true);
           setTimeout(() => setShowConfetti(false), 5000);
+        } else if (remainingVotes !== null && remainingVotes <= 0) {
+          // 票用完且未中獎，跳過 GameResult 直接顯示 ThankYou
+          audioManager.playLose();
+          setShowGame(false);
+          setShowThankYou(true);
         } else {
+          setGameResult(result);
           audioManager.playLose();
         }
       }
@@ -454,7 +467,7 @@ export default function HomePage({ campaign, maxVotesPerPerson = 0, campaignDeta
       alert('抽獎失敗，請稍後再試');
       setShowGame(false);
     }
-  }, [campaign.id]);
+  }, [campaign.id, remainingVotes]);
 
   const [claimData, setClaimData] = useState<{ winnerId: string; prizeName: string } | null>(null);
 
